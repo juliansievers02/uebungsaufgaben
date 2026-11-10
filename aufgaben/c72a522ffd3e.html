@@ -94,6 +94,9 @@ button:disabled { opacity: .55; cursor: default; }
 .balken { height: 8px; border-radius: 99px; background: var(--linie); overflow: hidden; }
 .balken div { height: 100%; background: var(--akzent); width: 0; transition: width .4s ease; }
 .weg ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+/* Handy: Raster dürfen nicht breiter werden als der Bildschirm. Breite Tabellen scrollen in ihrem Kasten, statt die Seite aufzuweiten. */
+.seite, .blatt, .teil, #bogen, #aufgaben, .optionen, .zahlen, .zuordnung, .muster, .selbst { grid-template-columns: minmax(0, 1fr); }
+.tabelle { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) { .balken div { transition: none; } }
 @media (max-width: 520px) { .blatt { padding: 14px; } .uhr { margin-left: 0; } .zuordnung label { grid-template-columns: 1fr; } }
 </style>
@@ -134,7 +137,7 @@ const KLAUSUR = {
  "aufgaben": [
   {
    "titel": "AgriMotion GmbH: Tripel-Algorithmus für das Routenzugnetz, kapazitiertes WLP und Linienauslegung in Gurobi",
-   "einleitung": "Die AgriMotion GmbH montiert Mähdrescher auf einer getakteten Fließlinie. Ein Routenzug bringt das Material über das Werksgelände zu den Montagestationen. Die Abbildung zeigt das Wegenetz als gemischten Graphen G. Die Knoten 1 bis 5 sind Kreuzungen. Ungerichtete Kanten sind in beiden Richtungen befahrbar, Pfeile sind Einbahnwege. Die Kantengewichte sind Weglängen in LE.\n\nDie Planung bestimmt die kürzesten Wege mit dem Tripel-Algorithmus (Distanzmatrix D und Vorgängermatrix U), ausgehend von der Bewertungsmatrix C. Die Zwischenknoten werden in der Reihenfolge k = 1, 2, …, 5 betrachtet.\n\nAnschließend sollen an ausgewählten Kreuzungen i Materialsupermärkte eröffnet werden. Jeder Supermarkt hat eine Kapazität a_i und Fixkosten f_i. Die Stationen j haben den Bedarf b_j. Das Problem wird als kapazitiertes WLP modelliert. Parallel wird die Linienauslegung als Binärmodell in Python-Gurobi umgesetzt.",
+   "einleitung": "Die AgriMotion GmbH montiert Mähdrescher auf einer getakteten Fließlinie. Ein Routenzug bringt das Material über das Werksgelände zu den Montagestationen. Die Abbildung zeigt das Wegenetz als gemischten Graphen G. Die Knoten 1 bis 5 sind Kreuzungen. Ungerichtete Kanten sind in beiden Richtungen befahrbar, Pfeile sind Einbahnwege. Die Kantengewichte sind Weglängen in LE.\n\nDie Planung bestimmt die kürzesten Wege mit dem Tripel-Algorithmus (Distanzmatrix D und Vorgängermatrix U), ausgehend von der Bewertungsmatrix C. Die Zwischenknoten werden in der Reihenfolge k = 1, 2, …, 5 betrachtet.\n\nAnschließend sollen an ausgewählten Kreuzungen i Materialsupermärkte eröffnet werden. In einem ersten Schritt wird dabei die Kreuzung ausgewählt, zu der die Distanz aller anderen Kreuzungen minimiert wird. Jeder Supermarkt hat eine Kapazität a_i und Fixkosten f_i. Die Stationen j haben den Bedarf b_j. Das Problem wird als kapazitiertes WLP modelliert.",
    "svg": "<svg viewBox=\"0 0 400 260\" xmlns=\"http://www.w3.org/2000/svg\"><line class=\"bauteil\" x1=\"70\" y1=\"130\" x2=\"200\" y2=\"45\"/><line class=\"bauteil\" x1=\"200\" y1=\"45\" x2=\"330\" y2=\"130\"/><line class=\"last\" x1=\"84\" y1=\"130\" x2=\"316\" y2=\"130\"/><polygon class=\"last\" fill=\"currentColor\" points=\"316,130 306,125 306,135\"/><line class=\"bauteil\" x1=\"70\" y1=\"130\" x2=\"140\" y2=\"215\"/><line class=\"last\" x1=\"144.7\" y1=\"201.8\" x2=\"195.3\" y2=\"58.2\"/><polygon class=\"last\" fill=\"currentColor\" points=\"195.3,58.2 196.7,69.3 187.3,65.9\"/><line class=\"bauteil\" x1=\"330\" y1=\"130\" x2=\"260\" y2=\"215\"/><line class=\"bauteil\" x1=\"140\" y1=\"215\" x2=\"260\" y2=\"215\"/><line class=\"last\" x1=\"247.2\" y1=\"209.3\" x2=\"82.8\" y2=\"135.7\"/><polygon class=\"last\" fill=\"currentColor\" points=\"82.8,135.7 93.9,135.2 89.9,144.4\"/><circle class=\"lager\" cx=\"70\" cy=\"130\" r=\"14\"/><circle class=\"lager\" cx=\"200\" cy=\"45\" r=\"14\"/><circle class=\"lager\" cx=\"330\" cy=\"130\" r=\"14\"/><circle class=\"lager\" cx=\"140\" cy=\"215\" r=\"14\"/><circle class=\"lager\" cx=\"260\" cy=\"215\" r=\"14\"/><text x=\"70\" y=\"134\" text-anchor=\"middle\">1<\/text><text x=\"200\" y=\"49\" text-anchor=\"middle\">2<\/text><text x=\"330\" y=\"134\" text-anchor=\"middle\">3<\/text><text x=\"140\" y=\"219\" text-anchor=\"middle\">4<\/text><text x=\"260\" y=\"219\" text-anchor=\"middle\">5<\/text><text x=\"112\" y=\"82\" text-anchor=\"middle\">4<\/text><text x=\"288\" y=\"82\" text-anchor=\"middle\">15<\/text><text x=\"108\" y=\"120\" text-anchor=\"middle\">5<\/text><text x=\"88\" y=\"188\" text-anchor=\"middle\">11<\/text><text x=\"160\" y=\"95\" text-anchor=\"middle\">3<\/text><text x=\"312\" y=\"188\" text-anchor=\"middle\">11<\/text><text x=\"200\" y=\"236\" text-anchor=\"middle\">4<\/text><text x=\"225\" y=\"186\" text-anchor=\"middle\">5<\/text><\/svg>",
    "tabellen": [
     {
@@ -208,7 +211,7 @@ const KLAUSUR = {
     "k = 1, weiter: d₅₂ = 9, u₅₂ = 1. d₅₃ = min(11; 5 + 5) = 10, u₅₃ = 1. d₅₄ bleibt 4, da 16 größer ist.",
     "k = 2 (über Knoten 2): d₃₁ = 15 + 4 = 19, u₃₁ = 2. d₃₄ = 15 + 15 = 30, u₃₄ = 1. d₄₁ = min(11; 3 + 4) = 7, u₄₁ = 2.",
     "k = 2, weiter: d₄₃ = min(16; 3 + d₂₃⁽¹⁾) = 3 + 9 = 12 LE. Der Vorgänger ist u₄₃ = u₂₃⁽¹⁾ = 1. d₁₅ und d₂₅ bleiben ∞.",
-    "c) Richtig sind die Aussagen zu d₂₃ (Verkürzung in k = 1) und zu d₁₅ = ∞. Die kleinste Zeilensumme gehört zum Medianproblem, nicht zum Zentrumsproblem.",
+    "c) Richtig sind die Aussagen zu d₂₃ (Verkürzung in k = 1) und zu d₁₅ = ∞.",
     "d) Richtig ist m.addConstrs(gp.quicksum(x[i,j] for j in J) <= a[i]*y[i] for i in I).",
     "e) Richtig sind die Aussagen 1, 2 und 4: ADD startet mit einem Standort und eröffnet schrittweise den Standort mit der größten Gesamtkostenersparnis. Es endet, wenn Transportersparnis − f_i nicht mehr positiv ist. Als Transportkosten dienen die Distanzen aus dem Tripel-Algorithmus, z. B. d₄₃ = 12 LE. Falsch ist, dass ADD Standorte wieder schließt (das tut DROP), und falsch ist, dass die einfache ADD-Heuristik Kapazitäten a_i prüft und stets Zulässigkeit garantiert."
    ],
@@ -294,9 +297,9 @@ const KLAUSUR = {
        "fehler": "Es gilt d₄₁ + d₁₂ = 15 > d₄₂ = 3. Der Eintrag bleibt unverändert."
       },
       {
-       "wert": "Für das Zentrumsproblem wählt man nach Abschluss des Algorithmus den Knoten mit der kleinsten Zeilensumme der Distanzmatrix.",
+       "wert": "Für die Kreuzungswahl wählt man nach Abschluss des Algorithmus den Knoten mit der kleinsten Zeilensumme der Distanzmatrix.",
        "richtig": false,
-       "fehler": "Die kleinste Zeilensumme löst das Medianproblem. Beim Zentrumsproblem wird die maximale Distanz (Zeilenmaximum) minimiert."
+       "fehler": "Man benötigt die Spaltensumme, da nach der Distanz von allen anderen Standorten zu einem Standort gefragt wird."
       },
       {
        "wert": "Nach k = 2 ist d₁₅ weiterhin ∞, weil jeder Weg von 1 nach 5 über Knoten 3 oder 4 führt.",
@@ -873,7 +876,8 @@ $('#bogen').addEventListener('submit', ev => {
       box.innerHTML = `<div class="bewertung ${klasse(erg.anteil)}"><div class="zeile"><span>${esc(erg.text)}</span><span>${zahlText(p)} / ${zahlText(t.punkte || 0)} P.</span></div>${erg.feedback ? `<div class="md">${md(erg.feedback)}</div>` : ''}</div>${musterHTML(t, erg, id)}`;
     });
   });
-  $$('#bogen input, #bogen textarea, #bogen select').forEach(e => { e.disabled = true; });
+  // Eingaben sperren, aber nicht die Häkchen der Selbstbewertung (die entstehen erst jetzt und sollen anklickbar bleiben)
+  $$('#bogen input:not([data-selbst]), #bogen textarea, #bogen select').forEach(e => { e.disabled = true; });
   $$('.weg').forEach(w => { w.hidden = false; });
   $('#abgeben').disabled = true;
   $('#abgabehinweis').textContent = 'Abgegeben. Dein Ergebnis steht unten.';
