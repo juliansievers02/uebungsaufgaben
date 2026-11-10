@@ -103,10 +103,7 @@ button:disabled { opacity: .55; cursor: default; }
   </header>
   <form id="bogen" autocomplete="off" style="display:grid;gap:18px">
     <div id="aufgaben" style="display:grid;gap:18px"></div>
-    <div class="blatt" id="sendebox" hidden>
-      <label class="feld" for="kuerzel">Name oder Kürzel (freiwillig)<input type="text" id="kuerzel" maxlength="40" autocomplete="off" placeholder="z. B. AB oder leer lassen"></label>
-      <div class="hinweis">Nach der Abgabe geht deine Punktzahl je Teilaufgabe an die Übungsleitung, damit sie sieht, wo die Gruppe steht. Deine Antworten selbst werden nicht verschickt.</div>
-    </div>
+    <div class="hinweis" id="sendebox" hidden>Nach der Abgabe gehen deine Antworten und Punkte <b>anonym</b> an die Übungsleitung, ohne Namen oder Gerätedaten. So sieht sie, wo die Gruppe steht.</div>
     <div class="aktionen">
       <button type="submit" class="primaer" id="abgeben">Abgeben und auswerten</button>
       <span class="hinweis" id="abgabehinweis">Zahlen mit Komma oder Punkt. Nach der Abgabe siehst du deine Punkte und die Musterlösung.</span>
@@ -437,8 +434,20 @@ function musterHTML(t, erg) {
 const klasse = a => a >= 0.999 ? 'gut' : a > 0 ? 'teilweise' : 'falsch';
 let auto = 0;
 
-// ---- Ergebnis an die Übungsleitung (nur Punkte je Teilaufgabe, keine Antworten) über einen geheimen ntfy-Kanal
+// ---- Ergebnis an die Übungsleitung, anonym: Punkte und Antworten je Teilaufgabe über einen geheimen ntfy-Kanal
 const PUNKTE = {};
+const kurz = (s, n = 1500) => String(s ?? '').trim().slice(0, n);
+function antwortenSammeln() {
+  const a = {};
+  KLAUSUR.aufgaben.forEach((auf, k) => auf.teile.forEach(t => {
+    const id = `${k}-${t.id}`;
+    if (t.typ === 'zahl') a[id] = kurz($(`#in-${id}`).value, 60);
+    else if (t.typ === 'mc' || t.typ === 'mehrfach') a[id] = $$(`input[name="${id}"]`).filter(e => e.checked).map(e => +e.value);
+    else if (t.typ === 'zuordnung') a[id] = t.elemente.map((_, i) => $(`#in-${id}-${i}`).value);
+    else if (t.typ !== 'zeichnung') a[id] = $$(`textarea[id^="in-${id}-"]`).map(e => kurz(e.value));
+  }));
+  return a;
+}
 const neuerVersuch = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 let versuch = neuerVersuch(), sendeTimer = 0;
 if (KLAUSUR.kanal) $('#sendebox').hidden = false;
@@ -447,7 +456,7 @@ function senden() {
   clearTimeout(sendeTimer);
   sendeTimer = setTimeout(() => {
     const summe = Object.values(PUNKTE).reduce((s, p) => s + p, 0);
-    const nachricht = JSON.stringify({ versuch, kuerzel: $('#kuerzel').value.trim(), punkte: Math.round(summe * 10) / 10, max: MAX, teile: PUNKTE });
+    const nachricht = JSON.stringify({ versuch, punkte: Math.round(summe * 10) / 10, max: MAX, teile: PUNKTE, antworten: antwortenSammeln() });
     fetch(`https://ntfy.sh/lz-${KLAUSUR.kanal}`, { method: 'POST', body: nachricht })
       .then(r => { if (r.ok) $('#gesendet').textContent = 'Dein Ergebnis ist bei der Übungsleitung angekommen.'; })
       .catch(() => { $('#gesendet').textContent = 'Dein Ergebnis konnte nicht übermittelt werden (keine Verbindung?). Deine Auswertung oben gilt trotzdem.'; });
