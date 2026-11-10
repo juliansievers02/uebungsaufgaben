@@ -103,6 +103,10 @@ button:disabled { opacity: .55; cursor: default; }
   </header>
   <form id="bogen" autocomplete="off" style="display:grid;gap:18px">
     <div id="aufgaben" style="display:grid;gap:18px"></div>
+    <div class="blatt" id="sendebox" hidden>
+      <label class="feld" for="kuerzel">Name oder Kürzel (freiwillig)<input type="text" id="kuerzel" maxlength="40" autocomplete="off" placeholder="z. B. AB oder leer lassen"></label>
+      <div class="hinweis">Nach der Abgabe geht deine Punktzahl je Teilaufgabe an die Übungsleitung, damit sie sieht, wo die Gruppe steht. Deine Antworten selbst werden nicht verschickt.</div>
+    </div>
     <div class="aktionen">
       <button type="submit" class="primaer" id="abgeben">Abgeben und auswerten</button>
       <span class="hinweis" id="abgabehinweis">Zahlen mit Komma oder Punkt. Nach der Abgabe siehst du deine Punkte und die Musterlösung.</span>
@@ -113,6 +117,7 @@ button:disabled { opacity: .55; cursor: default; }
     <div class="gross"><span id="summe">0</span> <small>von <span id="maximal">0</span> Punkten</small></div>
     <div class="balken"><div id="balken"></div></div>
     <p class="hinweis" id="ergebnistext" style="margin:0"></p>
+    <p class="hinweis" id="gesendet" style="margin:0" aria-live="polite"></p>
     <div class="aktionen"><button type="button" id="nochmal">Nochmal von vorn</button></div>
   </section>
 </main>
@@ -124,6 +129,7 @@ const KLAUSUR = {
  "titel": "AgriMotion GmbH: Tripel-Algorithmus für das Routenzugnetz, kapazitiertes WLP und Linienauslegung in Gurobi",
  "modul": "Produktion und Logistik",
  "dauer": 20,
+ "kanal": "58b5d941e9e14719b3eca0821c983895a5744d51",
  "aufgaben": [
   {
    "titel": "AgriMotion GmbH: Tripel-Algorithmus für das Routenzugnetz, kapazitiertes WLP und Linienauslegung in Gurobi",
@@ -431,6 +437,23 @@ function musterHTML(t, erg) {
 const klasse = a => a >= 0.999 ? 'gut' : a > 0 ? 'teilweise' : 'falsch';
 let auto = 0;
 
+// ---- Ergebnis an die Übungsleitung (nur Punkte je Teilaufgabe, keine Antworten) über einen geheimen ntfy-Kanal
+const PUNKTE = {};
+const neuerVersuch = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+let versuch = neuerVersuch(), sendeTimer = 0;
+if (KLAUSUR.kanal) $('#sendebox').hidden = false;
+function senden() {
+  if (!KLAUSUR.kanal) return;
+  clearTimeout(sendeTimer);
+  sendeTimer = setTimeout(() => {
+    const summe = Object.values(PUNKTE).reduce((s, p) => s + p, 0);
+    const nachricht = JSON.stringify({ versuch, kuerzel: $('#kuerzel').value.trim(), punkte: Math.round(summe * 10) / 10, max: MAX, teile: PUNKTE });
+    fetch(`https://ntfy.sh/lz-${KLAUSUR.kanal}`, { method: 'POST', body: nachricht })
+      .then(r => { if (r.ok) $('#gesendet').textContent = 'Dein Ergebnis ist bei der Übungsleitung angekommen.'; })
+      .catch(() => { $('#gesendet').textContent = 'Dein Ergebnis konnte nicht übermittelt werden (keine Verbindung?). Deine Auswertung oben gilt trotzdem.'; });
+  }, 1500);
+}
+
 function zeigeSumme() {
   let selbst = 0;
   KLAUSUR.aufgaben.forEach((a, k) => a.teile.forEach(t => {
@@ -440,6 +463,7 @@ function zeigeSumme() {
     const erfuellt = $$(`[data-selbst="${id}"]`).reduce((s, e, i) => s + (e.checked ? kr[i].gewicht : 0), 0);
     const p = Math.round((t.punkte || 0) * erfuellt / gesamt * 2) / 2;
     selbst += p;
+    PUNKTE[id] = p;
     const box = $(`[data-teil="${id}"] .bewertung`);
     if (box) { box.className = `bewertung ${klasse(p / (t.punkte || 1))}`; $('.zeile span:last-child', box).textContent = `${zahlText(p)} / ${zahlText(t.punkte || 0)} P.`; }
   }));
@@ -467,6 +491,7 @@ $('#bogen').addEventListener('submit', ev => {
       }
       const p = Math.round((t.punkte || 0) * erg.anteil * 2) / 2;
       auto += p;
+      PUNKTE[id] = p;
       box.innerHTML = `<div class="bewertung ${klasse(erg.anteil)}"><div class="zeile"><span>${esc(erg.text)}</span><span>${zahlText(p)} / ${zahlText(t.punkte || 0)} P.</span></div>${erg.feedback ? `<div class="md">${md(erg.feedback)}</div>` : ''}</div>${musterHTML(t, erg)}`;
     });
   });
@@ -476,10 +501,12 @@ $('#bogen').addEventListener('submit', ev => {
   $('#abgabehinweis').textContent = 'Abgegeben. Dein Ergebnis steht unten.';
   $('#ergebnis').hidden = false;
   zeigeSumme();
+  senden();
   stoppeUhr();
   $('#ergebnis').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 });
-document.addEventListener('change', ev => { if (ev.target.matches('[data-selbst]')) zeigeSumme(); });
+// Selbstbewertung nachträglich: dieselbe Abgabe mit neuer Punktzahl (die Lernzentrale behält die neueste)
+document.addEventListener('change', ev => { if (ev.target.matches('[data-selbst]')) { zeigeSumme(); senden(); } });
 
 $('#nochmal').addEventListener('click', () => {
   $$('#bogen input, #bogen textarea, #bogen select').forEach(e => { e.disabled = false; if (e.type === 'checkbox' || e.type === 'radio') e.checked = false; else e.value = ''; });
@@ -488,6 +515,9 @@ $('#nochmal').addEventListener('click', () => {
   $('#abgeben').disabled = false;
   $('#abgabehinweis').textContent = 'Zahlen mit Komma oder Punkt. Nach der Abgabe siehst du deine Punkte und die Musterlösung.';
   $('#ergebnis').hidden = true;
+  $('#gesendet').textContent = '';
+  for (const t in PUNKTE) delete PUNKTE[t];
+  versuch = neuerVersuch();
   try { localStorage.removeItem(SPEICHER); } catch (e) {}
   rest = KLAUSUR.dauer * 60; zeigeUhr(); $('#uhrknopf').textContent = 'Zeit starten';
   $('#titel').scrollIntoView({ block: 'start' });
