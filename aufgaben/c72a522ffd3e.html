@@ -1,0 +1,1231 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>body{margin:0}</style>
+<title>Übung Netzwerkplanung: Tripel-Algorithmus, ADD-Algorithmus und WLP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ein ruhiges Aufgabenblatt in einer Spalte; jede Aufgabe ein Block, Teilaufgaben darin, Ergebnis als Karte am Ende.
+   Diese Seite erzeugt die Lernzentrale beim Exportieren einer Probeklausur (static/export_vorlage.html). */
+:root {
+  --bg: #f4f6f8; --flaeche: #ffffff; --fg: #17202b; --leise: #5a6675; --linie: #d8dee6;
+  --akzent: #1d5fa6; --akzent-hell: #e3eef9; --gut: #1e7a45; --gut-hell: #e2f3e8; --schlecht: #b23b2e; --schlecht-hell: #f9e5e2;
+  --mittel: #9a6400; --mittel-hell: #fbf0dc;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;  /* bewusst immer hell, wie ein Aufgabenblatt, auch bei dunklem System */
+}
+/* Handy im Querformat: Safari vergrößert sonst manche Textblöcke automatisch und andere nicht */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); }
+.seite { max-width: 780px; margin: 0 auto; padding-block: 24px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; }
+h1 { font-size: 1.45rem; line-height: 1.25; margin: 0; text-wrap: balance; font-weight: 700; }
+h2 { font-size: 1.12rem; margin: 0; font-weight: 650; text-wrap: balance; }
+h3 { font-size: .8rem; margin: 0; text-transform: uppercase; letter-spacing: .06em; color: var(--leise); font-weight: 600; }
+.kopf { display: grid; gap: 10px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--leise); font-size: .9rem; }
+.chip { display: inline-flex; padding: 3px 10px; border-radius: 999px; background: var(--akzent-hell); color: var(--akzent); font-weight: 600; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.uhr { margin-left: auto; display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.uhr b { font-size: 1.1rem; color: var(--fg); }
+.uhr.ablauf b { color: var(--schlecht); }
+.blatt { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 12px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.aufgabe-kopf { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.aufgabe-kopf .pkt { margin-left: auto; color: var(--leise); font-size: .88rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.md { min-width: 0; overflow-wrap: anywhere; }
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 .6em; max-width: 70ch; }
+.sb-figur { margin: .4em 0 .9em; max-width: 640px; }
+.sb-figur svg, .sb-ablauf svg { max-width: 100%; height: auto; display: block; }
+.sb-ablauf { display: flex; justify-content: center; }
+.sb-mermaid { white-space: pre-wrap; font-size: 12px; }
+.sb-fehler { color: #c0392b; }
+pre.sb-code { background: rgba(127,127,127,.1); padding: 10px 12px; border-radius: 8px; overflow: auto; font-size: 13px; line-height: 1.45; tab-size: 4; }
+pre.sb-code code, pre.sb-code code.hljs { background: none; padding: 0; }
+.md table, .tabelle table { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; }
+.md th, .md td, .tabelle th, .tabelle td { border: 1px solid var(--linie); padding: 4px 8px; text-align: left; hyphens: auto; -webkit-hyphens: auto; }
+/* Breite Tabellen scrollen in ihrem Kasten; ein Schatten am Rand zeigt, dass es seitlich weitergeht */
+.md table { display: block; max-width: 100%; width: max-content; overflow-x: auto; }
+.tabelle { overflow-x: auto; }
+.md table, .tabelle {
+  background: linear-gradient(90deg, var(--flaeche) 30%, transparent), linear-gradient(270deg, var(--flaeche) 30%, transparent) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(23,32,43,.18), transparent), radial-gradient(farthest-side at 100% 50%, rgba(23,32,43,.18), transparent) 100% 0;
+  background-repeat: no-repeat; background-size: 28px 100%, 28px 100%, 10px 100%, 10px 100%; background-attachment: local, local, scroll, scroll;
+}
+.tabelle b { display: block; margin-bottom: 4px; font-size: .9rem; }
+code, .code { font-family: var(--mono); font-size: .86rem; }
+pre { overflow-x: auto; background: var(--bg); padding: 8px 10px; border-radius: 8px; }
+math { font-size: 1.05em; }
+.gegeben { display: flex; flex-wrap: wrap; gap: 6px; }
+.gegeben span { font-family: var(--mono); font-size: .85rem; padding: 2px 8px; border: 1px solid var(--linie); border-radius: 6px; font-variant-numeric: tabular-nums; }
+.skizze { overflow-x: auto; color: var(--fg); }
+.skizze svg { width: 100%; max-width: 480px; height: auto; display: block; margin: 0 auto; }
+.skizze text { font: 13px var(--sans); fill: currentColor; }
+.skizze .bauteil { stroke: currentColor; stroke-width: 2.5; fill: none; }
+.skizze .lager { stroke: currentColor; stroke-width: 1.5; fill: var(--flaeche); }
+.skizze .last { stroke: var(--schlecht); color: var(--schlecht); stroke-width: 2; fill: none; }
+.skizze polygon.last { fill: currentColor; }
+.skizze .mass { stroke: var(--leise); stroke-width: 1; fill: none; }
+.skizze .hilfe { stroke: var(--leise); stroke-width: 1; stroke-dasharray: 4 3; fill: none; }
+.teil { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--linie); }
+.teil-kopf { display: flex; gap: 10px; align-items: baseline; }
+.teil-kopf .buchst { font-weight: 700; color: var(--akzent); min-width: 1.4em; }
+.teil-kopf .pkt { margin-left: auto; color: var(--leise); font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+label.option { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--linie); border-radius: 8px; cursor: pointer; }
+label.option:hover { border-color: var(--akzent); }
+label.option input { margin-top: 4px; flex: none; accent-color: var(--akzent); }
+.optionen { display: grid; gap: 8px; }
+.eingabe { display: flex; gap: 8px; align-items: center; }
+input[type="text"], textarea, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--linie); border-radius: 8px; padding: 8px 10px; box-sizing: border-box; }
+input[type="text"], textarea { width: 100%; }
+.eingabe input { max-width: 11em; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+textarea { min-height: 4.5em; resize: vertical; }
+.feld { display: grid; gap: 4px; font-size: .9rem; color: var(--leise); }
+.zahlen { display: grid; gap: 8px; max-width: 460px; }
+.zn-zeile { display: grid; grid-template-columns: minmax(4em, 1fr) 9em auto; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--linie); border-radius: 8px; }
+.zn-zeile .md p { margin: 0; }
+.zn-zeile input { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.zuordnung { display: grid; gap: 8px; }
+.zuordnung label { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid var(--linie); border-radius: 8px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, label.option:focus-within { outline: 2px solid var(--akzent); outline-offset: 2px; }
+button { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 16px; border: 1px solid var(--linie); background: var(--flaeche); color: var(--fg); cursor: pointer; }
+button.primaer { background: var(--akzent); border-color: var(--akzent); color: var(--flaeche); }
+button:disabled { opacity: .55; cursor: default; }
+.aktionen { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.hinweis { font-size: .88rem; color: var(--leise); }
+.bewertung { border-radius: 8px; padding: 10px 12px; display: grid; gap: 6px; font-size: .95rem; }
+.bewertung.gut { background: var(--gut-hell); } .bewertung.teilweise { background: var(--mittel-hell); } .bewertung.falsch { background: var(--schlecht-hell); }
+.bewertung .zeile { display: flex; gap: 8px; align-items: baseline; font-weight: 600; }
+.bewertung.gut .zeile { color: var(--gut); } .bewertung.teilweise .zeile { color: var(--mittel); } .bewertung.falsch .zeile { color: var(--schlecht); }
+.bewertung .zeile span:last-child { margin-left: auto; font-variant-numeric: tabular-nums; }
+.muster { border-left: 3px solid var(--akzent); padding: 2px 0 2px 12px; display: grid; gap: 6px; }
+.muster > b { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--akzent); }
+.muster ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.ergebnis { background: var(--flaeche); border: 2px solid var(--akzent); border-radius: 12px; padding: 18px; display: grid; gap: 8px; }
+.ergebnis .gross { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ergebnis .gross small { font-size: 1rem; color: var(--leise); font-weight: 500; }
+.balken { height: 8px; border-radius: 99px; background: var(--linie); overflow: hidden; }
+.balken div { height: 100%; background: var(--akzent); width: 0; transition: width .4s ease; }
+.weg ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+/* Handy: Raster dürfen nicht breiter werden als der Bildschirm. Breite Tabellen scrollen in ihrem Kasten, statt die Seite aufzuweiten. */
+.seite, .blatt, .teil, #bogen, #aufgaben, .optionen, .zahlen, .zuordnung, .muster, .selbst { grid-template-columns: minmax(0, 1fr); }
+.tabelle { max-width: 100%; }
+@media (prefers-reduced-motion: reduce) { .balken div { transition: none; } }
+@media (max-width: 520px) {
+  .md table, .tabelle table { font-size: .82rem; }
+  .md th, .md td, .tabelle th, .tabelle td { padding: 3px 5px; }
+}
+@media (max-width: 520px) { .blatt { padding: 14px; } .uhr { margin-left: 0; } .zuordnung label { grid-template-columns: 1fr; } }
+</style>
+
+<main class="seite">
+  <header class="kopf">
+    <div class="meta" id="modul"></div>
+    <h1 id="titel"></h1>
+    <div class="meta"><span class="chip" id="eckdaten"></span>
+      <span class="uhr" id="uhr"><b id="uhrzeit">00:00</b><button type="button" id="uhrknopf">Zeit starten</button></span></div>
+  </header>
+  <form id="bogen" autocomplete="off" style="display:grid;gap:18px">
+    <div id="aufgaben" style="display:grid;gap:18px"></div>
+    <div class="hinweis" id="sendebox" hidden>Nach der Abgabe gehen deine Antworten und Punkte <b>anonym</b> an die Übungsleitung, ohne Namen oder Gerätedaten. So sieht sie, wo die Gruppe steht.</div>
+    <div class="aktionen">
+      <button type="submit" class="primaer" id="abgeben">Abgeben und auswerten</button>
+      <span class="hinweis" id="abgabehinweis">Zahlen mit Komma oder Punkt. Nach der Abgabe siehst du deine Punkte und die Musterlösung.</span>
+    </div>
+  </form>
+  <section class="ergebnis" id="ergebnis" hidden aria-live="polite">
+    <div class="hinweis">Dein Ergebnis</div>
+    <div class="gross"><span id="summe">0</span> <small>von <span id="maximal">0</span> Punkten</small></div>
+    <div class="balken"><div id="balken"></div></div>
+    <p class="hinweis" id="ergebnistext" style="margin:0"></p>
+    <p class="hinweis" id="gesendet" style="margin:0" aria-live="polite"></p>
+    <div class="aktionen"><button type="button" id="nochmal">Nochmal von vorn</button></div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script>
+// Schaubilder und Code in Aufgabentexten. Wird von der App (app.js) und der geteilten Webseite (export_vorlage.html) benutzt.
+//
+// Im Text stehen sie als lesbare Blöcke, die man auch von Hand schreiben kann:
+//
+//   ```diagramm                 ```ablauf                    ```python
+//   typ: linie                  richtung: LR                 def f(x):
+//   titel: Nachfrage            (Start) -> Prüfen                return 2 * x
+//   x: Periode                  Prüfen -> {OK?}              ```
+//   y: Stück                    {OK?} -> (Ende) : ja
+//   Periode | n | p             {OK?} -> Prüfen : nein
+//   1 | 277 | 222               ```
+//   2 | 338 | 240
+//   ```
+//
+// typ: linie, balken oder punkte. Ablauf: (Text) = Start/Ende, {Text} = Entscheidung, [Text] oder Text = Schritt.
+// Für alles andere geht ```mermaid direkt (z. B. Gantt).
+(function () {
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const FARBEN = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2'];
+  const zahl = s => { const t = String(s ?? '').trim().replace(/\s/g, ''); if (!t) return NaN; return Number(/,\d*$/.test(t) && !/\.\d*,/.test(t) ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '')); };
+  const fmt = v => (Math.abs(v) >= 1e5 || (Math.abs(v) < 1e-3 && v !== 0) ? v.toExponential(1) : String(Math.round(v * 1000) / 1000)).replace('.', ',');
+  const zellen = z => z.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split(/(?<!\\)\|/).map(x => x.trim().replace(/\\\|/g, '|'));
+
+  // ---- Diagramm: Text <-> Daten
+
+  function diagrammLesen(text) {
+    const d = { typ: 'linie', titel: '', x: '', y: '', kopf: [], zeilen: [] };
+    for (const roh of String(text || '').split('\n')) {
+      const z = roh.trim();
+      if (!z) continue;
+      const m = z.match(/^(typ|titel|x|y)\s*:\s*(.*)$/i);
+      if (m && !z.includes('|')) { d[m[1].toLowerCase()] = m[2].trim(); continue; }
+      if (/^\|?\s*:?-{2,}/.test(z)) continue;  // Trennzeile einer Markdown-Tabelle
+      if (!d.kopf.length) d.kopf = zellen(z); else d.zeilen.push(zellen(z));
+    }
+    if (!['linie', 'balken', 'punkte'].includes(d.typ)) d.typ = 'linie';
+    return d;
+  }
+
+  function diagrammText(d) {
+    const z = r => r.map(x => String(x ?? '').replace(/\|/g, '\\|')).join(' | ');
+    return [`typ: ${d.typ || 'linie'}`, d.titel ? `titel: ${d.titel}` : '', d.x ? `x: ${d.x}` : '', d.y ? `y: ${d.y}` : '',
+      z(d.kopf), ...d.zeilen.filter(r => r.some(x => String(x).trim())).map(z)].filter(Boolean).join('\n');
+  }
+
+  // Runde Achsenwerte (1, 2, 5, 10 …)
+  function skala(min, max, n = 5) {
+    if (min === max) { min -= 1; max += 1; }
+    const roh = (max - min) / n, p = Math.pow(10, Math.floor(Math.log10(roh)));
+    const schritt = [1, 2, 2.5, 5, 10].map(f => f * p).find(s => s >= roh) || 10 * p;
+    const a = Math.floor(min / schritt) * schritt, b = Math.ceil(max / schritt) * schritt;
+    const ticks = [];
+    for (let v = a; v <= b + schritt / 2; v += schritt) ticks.push(Math.round(v / schritt) * schritt);
+    return { a, b, ticks };
+  }
+
+  function diagrammSVG(d) {
+    if (typeof d === 'string') d = diagrammLesen(d);
+    const reihen = d.kopf.slice(1).map((name, j) => ({ name: name || `Reihe ${j + 1}`, werte: d.zeilen.map(r => zahl(r[j + 1])) }));
+    const xs = d.zeilen.map(r => r[0] ?? '');
+    if (!reihen.length || !xs.length) return '<div class="sb-fehler">Diagramm: Es fehlen Daten (Kopfzeile und mindestens eine Zeile).</div>';
+    const xNum = d.typ !== 'balken' && xs.every(x => Number.isFinite(zahl(x)));
+    const alle = reihen.flatMap(r => r.werte).filter(Number.isFinite);
+    if (!alle.length) return '<div class="sb-fehler">Diagramm: Die Werte müssen Zahlen sein.</div>';
+    const W = 600, H = 340, L = 62, R = 18, T = d.titel ? 38 : 16, B = (d.x ? 56 : 38) + (reihen.length > 1 ? 22 : 0);
+    const pw = W - L - R, ph = H - T - B;
+    const sy = skala(d.typ === 'balken' ? Math.min(0, ...alle) : Math.min(...alle), d.typ === 'balken' ? Math.max(0, ...alle) : Math.max(...alle));
+    const Y = v => T + ph - (v - sy.a) / (sy.b - sy.a) * ph;
+    let X, xTicks;
+    if (xNum) {
+      const xv = xs.map(zahl), sx = skala(Math.min(...xv), Math.max(...xv), Math.min(8, Math.max(2, xv.length)));
+      X = i => L + (zahl(xs[i]) - sx.a) / (sx.b - sx.a) * pw;
+      xTicks = sx.ticks.map(v => ({ x: L + (v - sx.a) / (sx.b - sx.a) * pw, text: fmt(v) }));
+    } else {
+      const band = pw / xs.length;
+      X = i => L + band * (i + 0.5);
+      xTicks = xs.map((x, i) => ({ x: X(i), text: x }));
+    }
+    const o = [`<svg class="sb-diagramm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(d.titel || 'Diagramm')}" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="12">`];
+    if (d.titel) o.push(`<text x="${W / 2}" y="22" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">${esc(d.titel)}</text>`);
+    for (const v of sy.ticks) {
+      o.push(`<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" stroke-opacity="${v === 0 ? .45 : .12}"/>`);
+      o.push(`<text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" fill="currentColor" fill-opacity=".75">${fmt(v)}</text>`);
+    }
+    o.push(`<line x1="${L}" x2="${L}" y1="${T}" y2="${T + ph}" stroke="currentColor" stroke-opacity=".45"/>`);
+    const schraeg = !xNum && xs.some(x => String(x).length > 8) && xs.length > 4;
+    for (const t of xTicks) {
+      o.push(`<line x1="${t.x}" x2="${t.x}" y1="${T + ph}" y2="${T + ph + 5}" stroke="currentColor" stroke-opacity=".45"/>`);
+      o.push(schraeg ? `<text transform="translate(${t.x},${T + ph + 16}) rotate(-25)" text-anchor="end" fill="currentColor" fill-opacity=".75">${esc(t.text)}</text>`
+        : `<text x="${t.x}" y="${T + ph + 19}" text-anchor="middle" fill="currentColor" fill-opacity=".75">${esc(t.text)}</text>`);
+    }
+    if (d.x) o.push(`<text x="${L + pw / 2}" y="${T + ph + 42}" text-anchor="middle" fill="currentColor">${esc(d.x)}</text>`);
+    if (d.y) o.push(`<text transform="translate(16,${T + ph / 2}) rotate(-90)" text-anchor="middle" fill="currentColor">${esc(d.y)}</text>`);
+    if (d.typ === 'balken') {
+      const band = pw / xs.length, bw = Math.min(46, band * 0.8 / reihen.length);
+      reihen.forEach((r, j) => r.werte.forEach((v, i) => {
+        if (!Number.isFinite(v)) return;
+        const x = X(i) - bw * reihen.length / 2 + j * bw, y0 = Y(Math.max(0, sy.a)), y = Y(v);
+        o.push(`<rect x="${x + 1}" y="${Math.min(y, y0)}" width="${bw - 2}" height="${Math.max(1, Math.abs(y0 - y))}" fill="${FARBEN[j % FARBEN.length]}" rx="2"><title>${esc(r.name)}: ${fmt(v)}</title></rect>`);
+      }));
+    } else {
+      reihen.forEach((r, j) => {
+        const f = FARBEN[j % FARBEN.length];
+        const pkt = r.werte.map((v, i) => [X(i), Y(v), v]).filter(p => Number.isFinite(p[2]));
+        if (d.typ === 'linie' && pkt.length > 1) o.push(`<polyline points="${pkt.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${f}" stroke-width="2.2" stroke-linejoin="round"/>`);
+        for (const p of pkt) o.push(`<circle cx="${p[0]}" cy="${p[1]}" r="${d.typ === 'punkte' ? 4.5 : 3.5}" fill="${f}"><title>${esc(r.name)}: ${fmt(p[2])}</title></circle>`);
+      });
+    }
+    if (reihen.length > 1) {
+      let x = L;
+      reihen.forEach((r, j) => {
+        o.push(`<rect x="${x}" y="${H - 16}" width="12" height="12" rx="2" fill="${FARBEN[j % FARBEN.length]}"/><text x="${x + 17}" y="${H - 6}" fill="currentColor">${esc(r.name)}</text>`);
+        x += 30 + r.name.length * 7;
+      });
+    }
+    o.push('</svg>');
+    return o.join('');
+  }
+
+  // ---- Ablauf: einfache Zeilen -> Mermaid
+
+  function ablaufLesen(text) {
+    const a = { richtung: 'TD', kanten: [] };
+    for (const roh of String(text || '').split('\n')) {
+      const z = roh.trim();
+      if (!z) continue;
+      const m = z.match(/^richtung\s*:\s*(\w+)/i);
+      if (m) { a.richtung = /^(LR|links|waagerecht)/i.test(m[1]) ? 'LR' : 'TD'; continue; }
+      const k = z.match(/^(.+?)\s*-+>\s*(.+?)(?:\s+:\s*(.+))?$/);
+      if (k) a.kanten.push({ von: k[1].trim(), nach: k[2].trim(), text: (k[3] || '').trim() });
+      else a.kanten.push({ von: z, nach: '', text: '' });
+    }
+    return a;
+  }
+
+  function ablaufText(a) {
+    return [`richtung: ${a.richtung === 'LR' ? 'LR' : 'TD'}`,
+      ...a.kanten.filter(k => k.von.trim()).map(k => k.nach.trim() ? `${k.von.trim()} -> ${k.nach.trim()}${k.text.trim() ? ' : ' + k.text.trim() : ''}` : k.von.trim())].join('\n');
+  }
+
+  function ablaufMermaid(text) {
+    const a = typeof text === 'string' ? ablaufLesen(text) : text;
+    const ids = new Map(), def = [];
+    const knoten = roh => {
+      const s = roh.trim();
+      const m = s.match(/^\((.*)\)$/) || s.match(/^\{(.*)\}$/) || s.match(/^\[(.*)\]$/);
+      const name = (m ? m[1] : s).trim(), form = s[0] === '(' && m ? 'rund' : s[0] === '{' && m ? 'raute' : 'eckig';
+      if (!ids.has(name)) {
+        const id = 'n' + ids.size, t = '"' + name.replace(/"/g, '#quot;') + '"';
+        ids.set(name, id);
+        def.push(`  ${id}${form === 'rund' ? `([${t}])` : form === 'raute' ? `{${t}}` : `[${t}]`}`);
+      }
+      return ids.get(name);
+    };
+    const kanten = a.kanten.map(k => {
+      const v = knoten(k.von);
+      if (!k.nach) return '';
+      const n = knoten(k.nach);
+      return `  ${v} -->${k.text ? `|"${k.text.replace(/"/g, '#quot;')}"|` : ''} ${n}`;
+    }).filter(Boolean);
+    return `flowchart ${a.richtung === 'LR' ? 'LR' : 'TD'}\n${def.join('\n')}\n${kanten.join('\n')}`;
+  }
+
+  // ---- Vor und nach Markdown
+
+  const SPRACHEN = { st: 'pascal', scl: 'pascal', 'structured-text': 'pascal', matlab: 'matlab', pseudocode: 'plaintext', pseudo: 'plaintext' };
+
+  // Ersetzt Diagramm-, Ablauf-, Mermaid- und Codeblöcke durch Platzhalter, damit Markdown und Formeln sie nicht verändern.
+  // Gibt den Text und eine Funktion zurück, die die Platzhalter im fertigen HTML einsetzt.
+  function vorbereiten(src) {
+    const bloecke = [];
+    const text = String(src ?? '').replace(/^([ \t]*)```[ \t]*([\w+#.-]*)[^\n]*\n([\s\S]*?)\n?[ \t]*```[ \t]*$/gm, (_, einzug, sprache, inhalt) => {
+      const s = sprache.toLowerCase();
+      let html;
+      if (s === 'diagramm' || s === 'chart') html = `<figure class="sb-figur">${diagrammSVG(inhalt)}</figure>`;
+      else if (s === 'ablauf' || s === 'mermaid') html = `<figure class="sb-figur"><pre class="sb-mermaid">${esc(s === 'ablauf' ? ablaufMermaid(inhalt) : inhalt)}</pre></figure>`;
+      else html = `<pre class="sb-code"><code${s ? ` class="language-${esc(SPRACHEN[s] || s)}" data-sprache="${esc(sprache)}"` : ''}>${esc(inhalt)}</code></pre>`;
+      bloecke.push(html);
+      return `${einzug}@@SB${bloecke.length - 1}@@`;
+    });
+    const einsetzen = html => html.replace(/<p>\s*@@SB(\d+)@@\s*<\/p>|@@SB(\d+)@@/g, (_, a, b) => bloecke[+(a ?? b)] ?? '');
+    return { text, einsetzen };
+  }
+
+  // Nachladen und Zeichnen: Mermaid-Abläufe und Syntaxhervorhebung (Bibliotheken erst, wenn sie gebraucht werden)
+  const geladen = {};
+  function laden(url, css) {
+    if (!geladen[url]) geladen[url] = new Promise((ok, fehler) => {
+      const e = document.createElement(css ? 'link' : 'script');
+      if (css) { e.rel = 'stylesheet'; e.href = url; } else { e.src = url; }
+      e.onload = ok; e.onerror = fehler;
+      document.head.appendChild(e);
+    });
+    return geladen[url];
+  }
+  let mermaidNr = 0;
+  async function nachRendern(root = document) {
+    const merm = [...root.querySelectorAll('pre.sb-mermaid:not([data-sb])')];
+    const code = [...root.querySelectorAll('pre.sb-code code[class*="language-"]:not([data-sb])')];
+    if (merm.length) {
+      merm.forEach(e => { e.dataset.sb = '1'; });
+      try {
+        await laden('https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js');
+        if (!window.__sbMermaid) { mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'strict', flowchart: { htmlLabels: false } }); window.__sbMermaid = true; }
+        for (const e of merm) {
+          try {
+            const { svg } = await mermaid.render('sbm' + (++mermaidNr), e.textContent);
+            const d = document.createElement('div');
+            d.className = 'sb-ablauf';
+            d.innerHTML = svg;
+            e.replaceWith(d);
+          } catch (err) { e.classList.add('sb-fehler'); e.title = 'Ablauf konnte nicht gezeichnet werden: ' + (err && err.message || err); }
+        }
+      } catch { merm.forEach(e => { e.title = 'Zum Zeichnen wird eine Internetverbindung gebraucht.'; }); }
+    }
+    if (code.length) {
+      code.forEach(e => { e.dataset.sb = '1'; });
+      try {
+        await Promise.all([laden('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js'),
+          laden('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css', true)]);
+        await laden('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/matlab.min.js').catch(() => {});
+        for (const e of code) {
+          const sprache = (e.className.match(/language-([\w+#-]+)/) || [])[1];
+          if (window.hljs && sprache && hljs.getLanguage(sprache)) e.innerHTML = hljs.highlight(e.textContent, { language: sprache }).value;
+        }
+      } catch { /* ohne Hervorhebung lesbar */ }
+    }
+  }
+
+  // Beobachtet einen Bereich und zeichnet neu eingefügte Abläufe und Codeblöcke
+  function beobachten(root) {
+    let geplant = false;
+    const los = () => { if (geplant) return; geplant = true; requestAnimationFrame(() => { geplant = false; nachRendern(root); }); };
+    new MutationObserver(los).observe(root, { childList: true, subtree: true });
+    los();
+  }
+
+  window.Schaubild = { diagrammLesen, diagrammText, diagrammSVG, ablaufLesen, ablaufText, ablaufMermaid, vorbereiten, nachRendern, beobachten, zellen };
+})();
+
+</script>
+<script>
+const KLAUSUR = {
+ "titel": "Übung Netzwerkplanung: Tripel-Algorithmus, ADD-Algorithmus und WLP",
+ "modul": "Produktion und Logistik",
+ "dauer": 25,
+ "mc_bewertung": "alles",
+ "kanal": "58b5d941e9e14719b3eca0821c983895a5744d51",
+ "aufgaben": [
+  {
+   "titel": "AgriMotion GmbH: Tripel-Algorithmus für das Routenzugnetz, kapazitiertes WLP und Linienauslegung in Gurobi",
+   "einleitung": "Die AgriMotion GmbH montiert Mähdrescher auf einer getakteten Fließlinie. Ein Routenzug bringt das Material über das Werksgelände zu den Montagestationen. Die Abbildung zeigt das Wegenetz als gemischten Graphen G. Die Knoten 1 bis 5 sind Kreuzungen. Ungerichtete Kanten sind in beiden Richtungen befahrbar, Pfeile sind Einbahnwege. Die Kantengewichte sind Weglängen in LE.\n\nDie Planung bestimmt die kürzesten Wege mit dem Tripel-Algorithmus (Distanzmatrix D und Vorgängermatrix U), ausgehend von der Bewertungsmatrix C. Die Zwischenknoten werden in der Reihenfolge k = 1, 2, …, 5 betrachtet.\n\nAnschließend sollen an ausgewählten Kreuzungen i Materialsupermärkte eröffnet werden. In einem ersten Schritt wird dabei die Kreuzung ausgewählt, zu der die Distanz aller anderen Kreuzungen minimiert wird. Jeder Supermarkt hat eine Kapazität a_i und Fixkosten f_i. Die Stationen j haben den Bedarf b_j. Das Problem wird als kapazitiertes WLP modelliert.",
+   "svg": "<svg viewBox=\"0 0 400 260\" xmlns=\"http://www.w3.org/2000/svg\"><line class=\"bauteil\" x1=\"70\" y1=\"130\" x2=\"200\" y2=\"45\"/><line class=\"bauteil\" x1=\"200\" y1=\"45\" x2=\"330\" y2=\"130\"/><line class=\"last\" x1=\"84\" y1=\"130\" x2=\"316\" y2=\"130\"/><polygon class=\"last\" fill=\"currentColor\" points=\"316,130 306,125 306,135\"/><line class=\"bauteil\" x1=\"70\" y1=\"130\" x2=\"140\" y2=\"215\"/><line class=\"last\" x1=\"144.7\" y1=\"201.8\" x2=\"195.3\" y2=\"58.2\"/><polygon class=\"last\" fill=\"currentColor\" points=\"195.3,58.2 196.7,69.3 187.3,65.9\"/><line class=\"bauteil\" x1=\"330\" y1=\"130\" x2=\"260\" y2=\"215\"/><line class=\"bauteil\" x1=\"140\" y1=\"215\" x2=\"260\" y2=\"215\"/><line class=\"last\" x1=\"247.2\" y1=\"209.3\" x2=\"82.8\" y2=\"135.7\"/><polygon class=\"last\" fill=\"currentColor\" points=\"82.8,135.7 93.9,135.2 89.9,144.4\"/><circle class=\"lager\" cx=\"70\" cy=\"130\" r=\"14\"/><circle class=\"lager\" cx=\"200\" cy=\"45\" r=\"14\"/><circle class=\"lager\" cx=\"330\" cy=\"130\" r=\"14\"/><circle class=\"lager\" cx=\"140\" cy=\"215\" r=\"14\"/><circle class=\"lager\" cx=\"260\" cy=\"215\" r=\"14\"/><text x=\"70\" y=\"134\" text-anchor=\"middle\">1<\/text><text x=\"200\" y=\"49\" text-anchor=\"middle\">2<\/text><text x=\"330\" y=\"134\" text-anchor=\"middle\">3<\/text><text x=\"140\" y=\"219\" text-anchor=\"middle\">4<\/text><text x=\"260\" y=\"219\" text-anchor=\"middle\">5<\/text><text x=\"112\" y=\"82\" text-anchor=\"middle\">4<\/text><text x=\"288\" y=\"82\" text-anchor=\"middle\">15<\/text><text x=\"108\" y=\"120\" text-anchor=\"middle\">5<\/text><text x=\"88\" y=\"188\" text-anchor=\"middle\">11<\/text><text x=\"160\" y=\"95\" text-anchor=\"middle\">3<\/text><text x=\"312\" y=\"188\" text-anchor=\"middle\">11<\/text><text x=\"200\" y=\"236\" text-anchor=\"middle\">4<\/text><text x=\"225\" y=\"186\" text-anchor=\"middle\">5<\/text><\/svg>",
+   "tabellen": [
+    {
+     "titel": "Bewertungsmatrix C",
+     "kopf": [
+      "",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+     ],
+     "zeilen": [
+      [
+       "1",
+       "0",
+       "4",
+       "5",
+       "11",
+       "∞"
+      ],
+      [
+       "2",
+       "4",
+       "0",
+       "15",
+       "∞",
+       "∞"
+      ],
+      [
+       "3",
+       "∞",
+       "15",
+       "0",
+       "∞",
+       "11"
+      ],
+      [
+       "4",
+       "11",
+       "3",
+       "∞",
+       "0",
+       "4"
+      ],
+      [
+       "5",
+       "5",
+       "∞",
+       "11",
+       "4",
+       "0"
+      ]
+     ]
+    }
+   ],
+   "gegeben": [
+    "w12 = 4 LE",
+    "w13 = 5 LE",
+    "w23 = 15 LE",
+    "w14 = 11 LE",
+    "w42 = 3 LE",
+    "w35 = 11 LE",
+    "w45 = 4 LE",
+    "w51 = 5 LE"
+   ],
+   "alle_sichtbar": true,
+   "loesung": [
+    "D⁽⁰⁾: d₁₂ = d₂₁ = 4, d₁₃ = 5 (nur 1 → 3), d₂₃ = d₃₂ = 15, d₁₄ = d₄₁ = 11, d₄₂ = 3 (nur 4 → 2), d₃₅ = d₅₃ = 11, d₄₅ = d₅₄ = 4, d₅₁ = 5 (nur 5 → 1), sonst ∞.",
+    "k = 1 (über Knoten 1): d₂₃ = min(15; 4 + 5) = 9, u₂₃ = 1. d₂₄ = 15, u₂₄ = 1. d₄₂ bleibt 3, da 15 größer ist. d₄₃ = 11 + 5 = 16, u₄₃ = 1.",
+    "k = 1, weiter: d₅₂ = 9, u₅₂ = 1. d₅₃ = min(11; 5 + 5) = 10, u₅₃ = 1. d₅₄ bleibt 4, da 16 größer ist.",
+    "k = 2 (über Knoten 2): d₃₁ = 15 + 4 = 19, u₃₁ = 2. d₃₄ = 15 + 15 = 30, u₃₄ = 1. d₄₁ = min(11; 3 + 4) = 7, u₄₁ = 2.",
+    "k = 2, weiter: d₄₃ = min(16; 3 + d₂₃⁽¹⁾) = 3 + 9 = 12 LE. Der Vorgänger ist u₄₃ = u₂₃⁽¹⁾ = 1. d₁₅ und d₂₅ bleiben ∞.",
+    "c) Richtig sind die Aussagen zu d₂₃ (Verkürzung in k = 1) und zu d₁₅ = ∞.",
+    "d) Richtig ist m.addConstrs(gp.quicksum(x[i,j] for j in J) <= a[i]*y[i] for i in I).",
+    "e) Richtig sind die Aussagen 1, 2 und 4: ADD startet mit einem Standort und eröffnet schrittweise den Standort mit der größten Gesamtkostenersparnis. Es endet, wenn Transportersparnis − f_i nicht mehr positiv ist. Als Transportkosten dienen die Distanzen aus dem Tripel-Algorithmus, z. B. d₄₃ = 12 LE. Falsch ist, dass ADD Standorte wieder schließt (das tut DROP), und falsch ist, dass die einfache ADD-Heuristik Kapazitäten a_i prüft und stets Zulässigkeit garantiert."
+   ],
+   "zeit": 11.0,
+   "teile": [
+    {
+     "id": "a",
+     "typ": "zahlen",
+     "frage": "Führen Sie den Tripel-Algorithmus für k = 1 und k = 2 durch (D⁽¹⁾, D⁽²⁾). Geben Sie die folgenden Einträge von D⁽²⁾ an (in LE, ganzzahlig).",
+     "punkte": 4.0,
+     "einheit": "",
+     "muster": "- d₄₃ = 12 LE\n- d₄₁ = 7 LE\n- d₃₁ = 19 LE\n- d₃₄ = 30 LE",
+     "eintraege": [
+      {
+       "label": "d₄₃",
+       "einheit": "LE",
+       "runden": 0,
+       "ergebnis": 12.0,
+       "fallen": []
+      },
+      {
+       "label": "d₄₁",
+       "einheit": "LE",
+       "runden": 0,
+       "ergebnis": 7.0,
+       "fallen": []
+      },
+      {
+       "label": "d₃₁",
+       "einheit": "LE",
+       "runden": 0,
+       "ergebnis": 19.0,
+       "fallen": []
+      },
+      {
+       "label": "d₃₄",
+       "einheit": "LE",
+       "runden": 0,
+       "ergebnis": 30.0,
+       "fallen": []
+      }
+     ]
+    },
+    {
+     "id": "b",
+     "typ": "zahlen",
+     "frage": "Geben Sie die folgenden Einträge der Vorgängermatrix U⁽²⁾ an (Knotennummer).",
+     "punkte": 2.0,
+     "einheit": "",
+     "muster": "- u₄₃ = 1\n- u₄₁ = 2",
+     "eintraege": [
+      {
+       "label": "u₄₃",
+       "einheit": "",
+       "runden": 0,
+       "ergebnis": 1.0,
+       "fallen": []
+      },
+      {
+       "label": "u₄₁",
+       "einheit": "",
+       "runden": 0,
+       "ergebnis": 2.0,
+       "fallen": []
+      }
+     ]
+    },
+    {
+     "id": "c",
+     "typ": "mehrfach",
+     "frage": "Wählen Sie alle zutreffenden Aussagen zum Tripel-Algorithmus im vorliegenden Netz.",
+     "punkte": 1.0,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "In Iteration k = 1 wird d₂₃ von 15 auf 9 LE verkürzt, obwohl eine direkte Kante 2–3 existiert.",
+       "richtig": true,
+       "fehler": "Es gilt d₂₁ + d₁₃ = 4 + 5 = 9 < 15. Der Umweg über die Einbahn 1 → 3 ist kürzer."
+      },
+      {
+       "wert": "In Iteration k = 1 wird d₄₂ auf 15 LE gesetzt.",
+       "richtig": false,
+       "fehler": "Es gilt d₄₁ + d₁₂ = 15 > d₄₂ = 3. Der Eintrag bleibt unverändert."
+      },
+      {
+       "wert": "Für die Kreuzungswahl wählt man nach Abschluss des Algorithmus den Knoten mit der kleinsten Zeilensumme der Distanzmatrix.",
+       "richtig": false,
+       "fehler": "Man benötigt die Spaltensumme, da nach der Distanz von allen anderen Standorten zu einem Standort gefragt wird."
+      },
+      {
+       "wert": "Nach k = 2 ist d₁₅ weiterhin ∞, weil jeder Weg von 1 nach 5 über Knoten 3 oder 4 führt.",
+       "richtig": true,
+       "fehler": "Knoten 5 ist von 1 aus nur über 3 oder 4 erreichbar. Diese Zwischenknoten werden erst in k = 3 bzw. k = 4 zugelassen."
+      },
+      {
+       "wert": "Nach k = 2 gilt d₃₁ = d₁₃ = 5 LE.",
+       "richtig": false,
+       "fehler": "1 → 3 ist eine Einbahn. Von 3 nach 1 gilt nach k = 2 der Wert d₃₁ = d₃₂ + d₂₁ = 19 LE. D ist nicht symmetrisch."
+      }
+     ],
+     "muster": "- In Iteration k = 1 wird d₂₃ von 15 auf 9 LE verkürzt, obwohl eine direkte Kante 2–3 existiert.\n- Nach k = 2 ist d₁₅ weiterhin ∞, weil jeder Weg von 1 nach 5 über Knoten 3 oder 4 führt."
+    },
+    {
+     "id": "d",
+     "typ": "mc",
+     "frage": "Welche Gurobi-Zeile bildet die Kapazitätsbedingung Σ_j x_ij ≤ a_i · y_i ∀ i des kapazitierten WLP korrekt ab?",
+     "punkte": 1.0,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "m.addConstrs(quicksum(x[i,j] for j in J) <= a[i] for i in I)",
+       "richtig": false,
+       "fehler": "Die Kopplung an y_i fehlt. Ein Supermarkt könnte ohne Eröffnung und damit ohne Fixkosten liefern, sodass das Modell alle y_i = 0 setzt."
+      },
+      {
+       "wert": "m.addConstrs(quicksum(x[i,j] for j in J) <= a[i]*y[i] for i in I)",
+       "richtig": true,
+       "fehler": "Für jeden Supermarkt i wird über alle Stationen j summiert. Ist y_i = 0, ist keine Lieferung möglich. Ist y_i = 1, begrenzt a_i die Menge."
+      },
+      {
+       "wert": "m.addConstr(quicksum(x[i,j] for i in I for j in J) <= gp.quicksum(a[i]*y[i] for i in I))",
+       "richtig": false,
+       "fehler": "Diese Bedingung ist aggregiert: Nur die Gesamtkapazität wird begrenzt. Ein einzelner Standort könnte seine Kapazität überschreiten."
+      },
+      {
+       "wert": "m.addConstrs(quicksum(x[i,j] for i in I) <= a[i]*y[i] for j in J)",
+       "richtig": false,
+       "fehler": "Hier ist die Indexierung vertauscht: Es wird über i summiert, aber je Station j indiziert. a[i] und y[i] sind außerhalb der Summe nicht definiert."
+      }
+     ],
+     "muster": "m.addConstrs(quicksum(x[i,j] for j in J) <= a[i]*y[i] for i in I)"
+    },
+    {
+     "id": "e",
+     "typ": "mehrfach",
+     "frage": "Wählen Sie alle zutreffenden Aussagen zur ADD-Heuristik für das Standortproblem (WLP) der Supermärkte.",
+     "punkte": 1.0,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "ADD startet mit genau einem eröffneten Standort und eröffnet in jedem weiteren Schritt den Standort mit der größten Gesamtkostenersparnis.",
+       "richtig": true,
+       "fehler": "ADD baut die Lösung schrittweise auf. Gewählt wird jeweils der Standort, der die Gesamtkosten (Transport- plus Fixkosten) am stärksten senkt."
+      },
+      {
+       "wert": "Die einfache ADD-Heuristik prüft die Kapazitäten a_i und liefert daher auch im kapazitierten WLP immer eine zulässige Lösung.",
+       "richtig": false,
+       "fehler": "Die einfache ADD-Heuristik ordnet jede Station dem günstigsten eröffneten Standort zu, ohne a_i zu prüfen. Sie ist für das unkapazitierte WLP gedacht, im kapazitierten Fall kann die Zuordnung unzulässig sein."
+      },
+      {
+       "wert": "Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. Beliefert der Supermarkt an Kreuzung 4 die Station an Kreuzung 3, ist der kürzeste Weg von 4 nach 3 einzusetzen, also d₄₃ = 12 LE.",
+       "richtig": true,
+       "fehler": "ADD verwendet beliebige gegebene Transportkosten c_ij (Standort i, Station j). Die Distanzmatrix D⁽²⁾ liefert für den Weg 4 → 2 → 1 → 3 den Wert d₄₃ = 3 + 4 + 5 = 12 LE. Weil das Netz Einbahnwege hat, ist die Richtung wichtig."
+      },
+      {
+       "wert": "Wird ein bereits eröffneter Standort durch spätere Eröffnungen überflüssig, schließt ADD ihn wieder.",
+       "richtig": false,
+       "fehler": "ADD fügt nur hinzu (engl. add) und revidiert nie. Das Schließen überflüssiger Standorte gehört zur DROP-Variante."
+      },
+      {
+       "wert": "ADD bricht ab, sobald keine weitere Eröffnung die Gesamtkosten mehr senkt, d. h. die Transportersparnis nicht mehr größer ist als die Fixkosten f_i.",
+       "richtig": true,
+       "fehler": "Ein Standort wird nur eröffnet, wenn Transportersparnis − f_i > 0 gilt. Ist das für keinen Kandidaten mehr der Fall, endet das Verfahren."
+      }
+     ],
+     "muster": "- ADD startet mit genau einem eröffneten Standort und eröffnet in jedem weiteren Schritt den Standort mit der größten Gesamtkostenersparnis.\n- Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. Beliefert der Supermarkt an Kreuzung 4 die Station an Kreuzung 3, ist der kürzeste Weg von 4 nach 3 einzusetzen, also d₄₃ = 12 LE.\n- ADD bricht ab, sobald keine weitere Eröffnung die Gesamtkosten mehr senkt, d. h. die Transportersparnis nicht mehr größer ist als die Fixkosten f_i."
+    }
+   ]
+  },
+  {
+   "titel": "WerkzeugWelt GmbH: ADD-Heuristik für Auslieferungslager im Ruhrgebiet und unkapazitiertes WLP in Gurobi",
+   "einleitung": "Die WerkzeugWelt GmbH beliefert Handwerksbetriebe im Ruhrgebiet. Für die Belieferung der vier Kundenregionen 1 bis 4 kommen Auslieferungslager in Bochum (B), Dortmund (D), Essen (E), Hagen (H) und Wuppertal (W) infrage. Die Fixkosten f_i und die Transportkosten c_ij (jeweils in Tsd. €/Jahr) sind in den folgenden Tabellen angegeben. Jede Kundenregion wird vollständig vom jeweils günstigsten eröffneten Lager beliefert. Die Lager haben keine Kapazitätsbeschränkung.",
+   "svg": "",
+   "tabellen": [
+    {
+     "titel": "Fixkosten f_i [Tsd. €/Jahr]",
+     "kopf": [
+      "Standort",
+      "Bochum (B)",
+      "Dortmund (D)",
+      "Essen (E)",
+      "Hagen (H)",
+      "Wuppertal (W)"
+     ],
+     "zeilen": [
+      [
+       "f_i",
+       "4",
+       "3",
+       "2",
+       "1",
+       "8"
+      ]
+     ]
+    },
+    {
+     "titel": "Transportkosten c_ij [Tsd. €/Jahr]",
+     "kopf": [
+      "c_ij",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "zeilen": [
+      [
+       "B",
+       "5",
+       "4",
+       "9",
+       "6"
+      ],
+      [
+       "D",
+       "2",
+       "7",
+       "5",
+       "6"
+      ],
+      [
+       "E",
+       "4",
+       "10",
+       "3",
+       "5"
+      ],
+      [
+       "H",
+       "5",
+       "6",
+       "7",
+       "3"
+      ],
+      [
+       "W",
+       "9",
+       "2",
+       "9",
+       "1"
+      ]
+     ]
+    }
+   ],
+   "gegeben": [
+    "b1 = 5 Tsd. €",
+    "b2 = 4 Tsd. €",
+    "b3 = 9 Tsd. €",
+    "b4 = 6 Tsd. €",
+    "fB = 4 Tsd. €",
+    "d1 = 2 Tsd. €",
+    "d2 = 7 Tsd. €",
+    "d3 = 5 Tsd. €",
+    "d4 = 6 Tsd. €",
+    "fD = 3 Tsd. €",
+    "e1 = 4 Tsd. €",
+    "e2 = 10 Tsd. €",
+    "e3 = 3 Tsd. €",
+    "e4 = 5 Tsd. €",
+    "fE = 2 Tsd. €",
+    "h1 = 5 Tsd. €",
+    "h2 = 6 Tsd. €",
+    "h3 = 7 Tsd. €",
+    "h4 = 3 Tsd. €",
+    "fH = 1 Tsd. €",
+    "w1 = 9 Tsd. €",
+    "w2 = 2 Tsd. €",
+    "w3 = 9 Tsd. €",
+    "w4 = 1 Tsd. €",
+    "fW = 8 Tsd. €"
+   ],
+   "alle_sichtbar": true,
+   "loesung": [
+    "1. Schritt: Gesamtkosten B = 28, D = 23, E = 24, H = 22, W = 29 ⇒ Hagen eröffnen (22 Tsd. €).",
+    "2. Schritt (Bezug Hagen): ω_B − f_B = 2 − 4 = −2; ω_D − f_D = 5 − 3 = 2; ω_E − f_E = 5 − 2 = 3; ω_W − f_W = 6 − 8 = −2 ⇒ Essen eröffnen, Bochum und Wuppertal ausschließen.",
+    "3. Schritt (Bezug min(H, E) = 4, 6, 3, 3): ω_D − f_D = 2 − 3 = −1 ≤ 0 ⇒ Dortmund ausschließen, Abbruch.",
+    "Lösung: Hagen und Essen eröffnen. Gesamtkosten = 1 + 2 + 16 = 19 Tsd. €.",
+    "Gurobi (erweitertes Modell mit Kapazitäten und Bedarfen): Vorgegeben ist der Code\n\ndef wlp(I, J, f, c, kap, bedarf):\n    m = gp.Model(\"kapazitiertes_WLP\")\n    y = m.addVars(I, vtype=GRB.BINARY, name=\"y\")\n    x = m.addVars(I, J, lb=0, vtype=GRB.CONTINUOUS, name=\"x\")\n\nmit y[i] = Standort i eröffnet und x[i,j] = Liefermenge von i nach j. Zu ergänzen sind drei Zeilen mit je 2 Punkten:\nFeld 1 – Zielfunktion: `m.setObjective(gp.quicksum(f[i]*y[i] for i in I) + gp.quicksum(c[i,j]*x[i,j] for i in I for j in J), GRB.MINIMIZE)`, d. h. min Σ_i f_i·y_i + Σ_i Σ_j c_ij·x_ij.\nFeld 2 – Bedarfsdeckung: `m.addConstrs(gp.quicksum(x[i,j] for i in I) >= bedarf[j] for j in J)`, d. h. Σ_i x_ij ≥ bedarf_j für alle j.\nFeld 3 – Kapazität: `m.addConstrs(gp.quicksum(x[i,j] for j in J) <= kap[i]*y[i] for i in I)`, d. h. Σ_j x_ij ≤ kap_i·y_i für alle i. Durch y_i wird nur an eröffneten Standorten geliefert."
+   ],
+   "zeit": 14.0,
+   "teile": [
+    {
+     "id": "a",
+     "typ": "zahlen",
+     "frage": "Lösen Sie das Problem mit dem ADD-Algorithmus. Bestimmen Sie im ersten Schritt für jeden Standort die Gesamtkosten.",
+     "punkte": 2.5,
+     "einheit": "",
+     "muster": "- Bochum (B) = 28 Tsd. €\n- Dortmund (D) = 23 Tsd. €\n- Essen (E) = 24 Tsd. €\n- Hagen (H) = 22 Tsd. €\n- Wuppertal (W) = 29 Tsd. €",
+     "eintraege": [
+      {
+       "label": "Bochum (B)",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 28.0,
+       "fallen": []
+      },
+      {
+       "label": "Dortmund (D)",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 23.0,
+       "fallen": []
+      },
+      {
+       "label": "Essen (E)",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 24.0,
+       "fallen": []
+      },
+      {
+       "label": "Hagen (H)",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 22.0,
+       "fallen": []
+      },
+      {
+       "label": "Wuppertal (W)",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 29.0,
+       "fallen": []
+      }
+     ]
+    },
+    {
+     "id": "b",
+     "typ": "mc",
+     "frage": "Welcher Standort wird als erstes eröffnet?",
+     "punkte": 0.5,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "Bochum",
+       "richtig": false,
+       "fehler": ""
+      },
+      {
+       "wert": "Dortmund",
+       "richtig": false,
+       "fehler": ""
+      },
+      {
+       "wert": "Essen",
+       "richtig": false,
+       "fehler": ""
+      },
+      {
+       "wert": "Hagen",
+       "richtig": true,
+       "fehler": "Hagen hat die geringsten Gesamtkosten mit 22 Tsd. €"
+      },
+      {
+       "wert": "Wuppertal",
+       "richtig": false,
+       "fehler": ""
+      }
+     ],
+     "muster": "Hagen"
+    },
+    {
+     "id": "c",
+     "typ": "zahlen",
+     "frage": "Berechnen Sie die Transportkostenersparnisse ω_i der übrigen Standorte gegenüber dem bereits eröffneten Standort (in Tsd. €, ganze Zahl).",
+     "punkte": 2.0,
+     "einheit": "",
+     "muster": "- ω_B = 2 Tsd. €\n- ω_D = 5 Tsd. €\n- ω_E = 5 Tsd. €\n- ω_W = 6 Tsd. €",
+     "eintraege": [
+      {
+       "label": "ω_B",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 2.0,
+       "fallen": []
+      },
+      {
+       "label": "ω_D",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 5.0,
+       "fallen": []
+      },
+      {
+       "label": "ω_E",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 5.0,
+       "fallen": []
+      },
+      {
+       "label": "ω_W",
+       "einheit": "Tsd. €",
+       "runden": 0,
+       "ergebnis": 6.0,
+       "fallen": []
+      }
+     ]
+    },
+    {
+     "id": "d",
+     "typ": "mehrfach",
+     "frage": "Wählen Sie alle zutreffenden Aussagen.",
+     "punkte": 2.0,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "Bochum wird im 2. Schritt endgültig ausgeschlossen.",
+       "richtig": true,
+       "fehler": "ω_B − f_B = −2 ≤ 0."
+      },
+      {
+       "wert": "Wuppertal wird im 2. Schritt endgültig ausgeschlossen.",
+       "richtig": true,
+       "fehler": "ω_W − f_W = −2 ≤ 0."
+      },
+      {
+       "wert": "Im 2. Schritt werden alle Standorte mit positiver Differenz gleichzeitig eröffnet.",
+       "richtig": false,
+       "fehler": "Je Iteration wird nur der Standort mit der größten Ersparnis eröffnet. Die übrigen werden im nächsten Schritt neu bewertet."
+      },
+      {
+       "wert": "Im 2. Schritt wird Essen eröffnet.",
+       "richtig": true,
+       "fehler": "Essen hat mit 3 die größte positive Differenz ω_i − f_i."
+      },
+      {
+       "wert": "Dortmund wird im 2. Schritt endgültig ausgeschlossen.",
+       "richtig": false,
+       "fehler": "ω_D − f_D = 2 > 0. Dortmund bleibt unentschieden."
+      }
+     ],
+     "muster": "- Bochum wird im 2. Schritt endgültig ausgeschlossen.\n- Wuppertal wird im 2. Schritt endgültig ausgeschlossen.\n- Im 2. Schritt wird Essen eröffnet."
+    },
+    {
+     "id": "e",
+     "typ": "mc",
+     "frage": "Der ADD-Algorithmus liefert für diese Daten {Hagen, Essen} mit 19 Tsd. € Gesamtkosten. Welche Aussage zum Verfahren ist richtig?",
+     "punkte": 1.0,
+     "einheit": "",
+     "optionen": [
+      {
+       "wert": "ADD ist ein Greedy-Verfahren: Ein ausgeschlossener Standort kommt nie wieder in Frage, deshalb gibt es keine Optimalitätsgarantie, auch wenn die Lösung hier optimal ist.",
+       "richtig": true,
+       "fehler": "Eröffnung und Ausschluss sind endgültig. Hier stimmt die Lösung, im Allgemeinen nicht (Kritik am ADD-Algorithmus in der Vorlesung)."
+      },
+      {
+       "wert": "ADD kann einen bereits eröffneten Standort wieder schließen, wenn er durch spätere Eröffnungen überflüssig wird.",
+       "richtig": false,
+       "fehler": "Das tut der DROP-Algorithmus. ADD eröffnet nur."
+      },
+      {
+       "wert": "Die Gesamtkosten der ADD-Lösung sind stets eine untere Schranke für die Kosten der Optimallösung.",
+       "richtig": false,
+       "fehler": "Jede zulässige Lösung ist eine obere Schranke für das Minimum. ADD liefert eine zulässige Lösung, keine Schranke nach unten."
+      },
+      {
+       "wert": "Dass die ADD-Lösung hier optimal ist, zeigt, dass ADD im unkapazitierten WLP immer die Optimallösung findet.",
+       "richtig": false,
+       "fehler": "Ein einzelnes Beispiel beweist keine Optimalität. ADD kann suboptimale Lösungen liefern."
+      }
+     ],
+     "muster": "ADD ist ein Greedy-Verfahren: Ein ausgeschlossener Standort kommt nie wieder in Frage, deshalb gibt es keine Optimalitätsgarantie, auch wenn die Lösung hier optimal ist."
+    },
+    {
+     "id": "f",
+     "typ": "text",
+     "frage": "Das Modell wird nun erweitert: Abweichend von der Einleitung haben die Lager Kapazitäten kap[i], und jede Kundenregion j hat einen Bedarf bedarf[j]. Eine Region darf von mehreren Standorten beliefert werden. \n\nDer Anfang des Gurobi-Codes ist vorgegeben:\n\n    m = Model(\"kapazitiertes_WLP\")\n\n    # Parameter\n\n    y = m.addVars(I, vtype=GRB.BINARY, name=\"y\")\n    x = m.addVars(I, J, lb=0, vtype=GRB.CONTINUOUS, name=\"x\")\n \n    \n\nErgänzen Sie folgende zwei Zeilen, jeweils in Code-Schreibweise:\n1. Zielfunktion: Die Gesamtkosten werden minimiert (2 Punkte).\n2. Nebenbedingung, dass der Bedarf jeder Kundenregion gedeckt wird (2 Punkte).",
+     "punkte": 4.0,
+     "einheit": "",
+     "ergebnis": null,
+     "muster": "Feld 1 – Zielfunktion (2 Punkte): Fixkosten werden mit y[i], Transportkosten mit der Liefermenge x[i,j] multipliziert, die Richtung ist MINIMIZE.\n`m.setObjective(quicksum(f[i]*y[i] for i in I) + quicksum(c[i][j]*x[i,j] for i in I for j in J), GRB.MINIMIZE)`\n\nFeld 2 – Bedarfsdeckung (2 Punkte): Die Summe der Lieferungen aller Standorte i an Region j muss mindestens den Bedarf von j erreichen, für jedes j. Auch `==` ist zulässig. Die Summe läuft über die Standorte i, nicht über die Regionen j.\n`m.addConstrs(quicksum(x[i,j] for i in I) == bedarf[j] for j in J)`",
+     "felder": []
+    }
+   ]
+  }
+ ]
+};
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const zahlText = x => String(Math.round(x * 10) / 10).replace('.', ',');
+
+// Markdown mit Formeln ($…$, $$…$$); Formeln als MathML, das braucht kein eigenes Stylesheet
+function md(src) {
+  const formeln = [];
+  const sb = window.Schaubild ? Schaubild.vorbereiten(src ?? '') : { text: String(src ?? ''), einsetzen: h => h };  // Diagramme, Abläufe, Code
+  let t = sb.text.replace(/\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g, (_, block, inline) => { formeln.push([block ?? inline, !!block]); return `@@F${formeln.length - 1}@@`; });
+  // Unterstriche in Formelschreibweise (Σ_j c_ij, d_43) sind kein Markdown: außerhalb von Code maskieren
+  t = t.split(/(```[\s\S]*?```|`[^`\n]*`)/).map((x, i) => i % 2 ? x : x.replace(/(?<=[^\s\\])_(?=[\p{L}\p{N}])/gu, '\\_')).join('');
+  let html;
+  try { html = window.marked ? marked.parse(t, { breaks: true }) : `<p>${esc(t).replace(/\n/g, '<br>')}</p>`; } catch (e) { html = `<p>${esc(t)}</p>`; }
+  html = sb.einsetzen(html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son\w+="[^"]*"/gi, ''));
+  return html.replace(/@@F(\d+)@@/g, (_, i) => {
+    const [tex, block] = formeln[+i];
+    try { return window.katex ? katex.renderToString(tex, { displayMode: block, output: 'mathml', throwOnError: false }) : esc(tex); } catch (e) { return esc(tex); }
+  });
+}
+const svgSicher = s => String(s || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son\w+="[^"]*"/gi, '');
+
+// Freitext: Musterlösung in einzelne Punkte zerlegen, die man selbst abhakt
+function kriterien(t) {
+  if (t.typ === 'zeichnung') return (t.kriterien || []).map(k => ({ text: k.text, gewicht: k.punkte || 1 }));
+  const m = String(t.muster || '').trim();
+  let teile = m.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+  if (teile.length < 2) teile = m.split(/\n/).map(s => s.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean);
+  if (teile.length < 2 || teile.length > 8) teile = [m || 'Antwort entspricht der Musterlösung'];
+  return teile.map(text => ({ text, gewicht: 1 }));
+}
+
+if (window.Schaubild) Schaubild.beobachten(document.body);
+
+// Mehrfachauswahl: wie in den Einstellungen des Moduls (alles oder nichts, anteilig, anteilig mit Abzug)
+const MC_HINWEIS = { alles: 'Punkte gibt es nur, wenn genau alle richtigen angekreuzt sind, sonst 0 Punkte (keine Minuspunkte).',
+  teil: 'Jede richtig angekreuzte Aussage bringt anteilig Punkte.', abzug: 'Falsch angekreuzte Aussagen ziehen Punkte ab (nie unter 0).' };
+
+const MAX = KLAUSUR.aufgaben.reduce((s, a) => s + a.teile.reduce((x, t) => x + (t.punkte || 0), 0), 0);
+document.title = KLAUSUR.titel;
+$('#titel').textContent = KLAUSUR.titel;
+$('#modul').textContent = KLAUSUR.modul ? `Übungsaufgabe · ${KLAUSUR.modul}` : 'Übungsaufgabe';
+$('#eckdaten').textContent = `${KLAUSUR.dauer} Minuten · ${zahlText(MAX)} Punkte${KLAUSUR.aufgaben.length > 1 ? ` · ${KLAUSUR.aufgaben.length} Aufgaben` : ''}`;
+$('#maximal').textContent = zahlText(MAX);
+
+function teilHTML(t, k) {
+  const id = `${k}-${t.id}`;
+  let feld = '';
+  if (t.typ === 'zahl') {
+    feld = `<div class="eingabe"><input type="text" inputmode="decimal" id="in-${id}" aria-label="Antwort zu ${t.id}" placeholder="Ergebnis">${t.einheit ? `<span>${esc(t.einheit)}</span>` : ''}</div>`;
+  } else if (t.typ === 'mc' || t.typ === 'mehrfach') {
+    const art = t.typ === 'mc' ? 'radio' : 'checkbox';
+    feld = `<div class="optionen">${t.optionen.map((o, i) => `<label class="option"><input type="${art}" id="in-${id}-${i}" name="${id}" value="${i}"><span class="md">${md(o.wert)}</span></label>`).join('')}</div>`
+      + (t.typ === 'mehrfach' ? `<div class="hinweis">Mehrere Antworten können richtig sein. ${MC_HINWEIS[KLAUSUR.mc_bewertung] || MC_HINWEIS.alles}</div>` : '');
+  } else if (t.typ === 'zahlen') {
+    feld = `<div class="zahlen">${t.eintraege.map((e, i) => `<label class="zn-zeile"><span class="md">${md(e.label)}</span><input type="text" inputmode="decimal" id="in-${id}-${i}" aria-label="${esc(e.label)}" placeholder="Wert">${e.einheit ? `<span>${esc(e.einheit)}</span>` : '<span></span>'}</label>`).join('')}</div>`;
+  } else if (t.typ === 'zuordnung') {
+    feld = `<div class="zuordnung">${t.elemente.map((e, i) => `<label><span class="md">${md(e.text)}</span><select id="in-${id}-${i}"><option value="">Zuordnen …</option>${t.kategorien.map(c => `<option>${esc(c)}</option>`).join('')}</select></label>`).join('')}</div>`;
+  } else if (t.typ === 'zeichnung') {
+    feld = '<div class="hinweis">Zeichne die Lösung auf Papier. Nach der Abgabe vergleichst du sie mit dem Bewertungsschema.</div>';
+  } else {
+    feld = (t.felder && t.felder.length ? t.felder.map((f, i) => `<label class="feld">${esc(f)}<textarea id="in-${id}-${i}" rows="3"></textarea></label>`).join('')
+      : `<textarea id="in-${id}-0" rows="4" aria-label="Antwort zu ${t.id}"></textarea>`)
+      + '<div class="hinweis">Diesen Teil bewertest du nach der Abgabe selbst anhand der Musterlösung.</div>';
+  }
+  return `<div class="teil" data-teil="${id}">
+    <div class="teil-kopf"><span class="buchst">${t.id})</span><div class="md">${md(t.frage)}</div><span class="pkt">${zahlText(t.punkte || 0)} P.</span></div>
+    ${feld}<div class="auswertung"></div></div>`;
+}
+
+$('#aufgaben').innerHTML = KLAUSUR.aufgaben.map((a, k) => {
+  const p = a.teile.reduce((x, t) => x + (t.punkte || 0), 0);
+  return `<section class="blatt" data-aufgabe="${k}">
+    <div class="aufgabe-kopf">${KLAUSUR.aufgaben.length > 1 ? `<h3>Aufgabe ${k + 1}</h3>` : ''}<span class="pkt">${zahlText(p)} Punkte${a.zeit ? ` · ${zahlText(a.zeit)} Min.` : ''}</span></div>
+    <h2>${esc(a.titel)}</h2>
+    ${a.einleitung ? `<div class="md">${md(a.einleitung)}</div>` : ''}
+    ${a.svg ? `<div class="skizze">${svgSicher(a.svg)}</div>` : ''}
+    ${(a.tabellen || []).map(tb => `<div class="tabelle">${tb.titel ? `<b>${esc(tb.titel)}</b>` : ''}<table>${tb.kopf && tb.kopf.length ? `<thead><tr>${tb.kopf.map(c => `<th>${md(c).replace(/^<p>|<\/p>\s*$/g, '')}</th>`).join('')}</tr></thead>` : ''}<tbody>${tb.zeilen.map(z => `<tr>${z.map(c => `<td>${md(c).replace(/^<p>|<\/p>\s*$/g, '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('')}
+    ${a.gegeben && a.gegeben.length && !a.alle_sichtbar ? `<div><div class="hinweis" style="margin-bottom:6px">Gegeben</div><div class="gegeben">${a.gegeben.map(g => `<span>${esc(g)}</span>`).join('')}</div></div>` : ''}
+    ${a.teile.map(t => teilHTML(t, k)).join('')}
+    <div class="weg" hidden>${a.loesung && a.loesung.length ? `<h3 style="margin-bottom:6px">Lösungsweg</h3><ol>${a.loesung.map(s => `<li class="md">${md(s)}</li>`).join('')}</ol>` : ''}</div>
+  </section>`;
+}).join('');
+
+// ---- Entwurf im eigenen Browser merken (falls die Seite neu lädt)
+const SPEICHER = 'aufgabe-entwurf';
+function entwurfSpeichern() {
+  const d = {};
+  $$('#bogen input, #bogen textarea, #bogen select').forEach(e => { d[e.id] = e.type === 'checkbox' || e.type === 'radio' ? e.checked : e.value; });
+  try { localStorage.setItem(SPEICHER, JSON.stringify(d)); } catch (e) {}
+}
+try {
+  const d = JSON.parse(localStorage.getItem(SPEICHER) || 'null');
+  if (d) $$('#bogen input, #bogen textarea, #bogen select').forEach(e => { if (!(e.id in d)) return; if (e.type === 'checkbox' || e.type === 'radio') e.checked = !!d[e.id]; else e.value = d[e.id]; });
+} catch (e) {}
+$('#bogen').addEventListener('input', entwurfSpeichern);
+$('#bogen').addEventListener('change', entwurfSpeichern);
+
+// ---- Auswertung wie in der Lernzentrale: 1 % Toleranz bzw. halbe letzte Stelle, typische Fehler werden erkannt
+function zahlLesen(s) {
+  const t = String(s || '').trim().replace(/\s/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+  return t === '' ? NaN : Number(t);
+}
+function pruefe(t, id) {
+  if (t.typ === 'zahl') {
+    const roh = $(`#in-${id}`).value.trim(), u = zahlLesen(roh), v = t.ergebnis;
+    const halb = 0.51 * 10 ** -(t.runden ?? 2), tol = Math.max(Math.abs(v) * 0.01, halb);
+    if (!roh) return { anteil: 0, text: 'Keine Antwort' };
+    if (!Number.isFinite(u)) return { anteil: 0, text: 'Keine Zahl erkannt' };
+    if (Math.abs(u - v) <= tol) return { anteil: 1, text: 'Richtig' };
+    const falle = (t.fallen || []).find(f => Math.abs(u - f.wert) <= Math.max(Math.abs(f.wert) * 0.01, halb));
+    if (falle) return { anteil: 0, text: 'Typischer Fehler', feedback: falle.fehler };
+    if (Math.abs(v) > 1e-9 && Math.abs(u + v) <= tol) return { anteil: 0, text: 'Vorzeichen falsch', feedback: 'Der Betrag stimmt, das Vorzeichen nicht.' };
+    if (Math.abs(u - v) <= Math.max(Math.abs(v) * 0.05, 1e-9)) return { anteil: 0, text: 'Knapp daneben', feedback: 'Prüfe Rundung und Zwischenergebnisse.' };
+    return { anteil: 0, text: 'Falsch' };
+  }
+  if (t.typ === 'mc' || t.typ === 'mehrfach') {
+    const gew = new Set($$(`input[name="${id}"]`).filter(e => e.checked).map(e => +e.value));
+    const richtig = new Set(t.optionen.map((o, i) => o.richtig ? i : -1).filter(i => i >= 0));
+    if (!gew.size) return { anteil: 0, text: 'Keine Antwort', gew };
+    if (t.typ === 'mc') { const [i] = gew; return t.optionen[i].richtig ? { anteil: 1, text: 'Richtig', gew } : { anteil: 0, text: 'Falsch', feedback: t.optionen[i].fehler, gew }; }
+    const treffer = [...gew].filter(i => richtig.has(i)).length, falsch = gew.size - treffer;
+    const regel = KLAUSUR.mc_bewertung || 'alles';
+    const anteil = regel === 'teil' ? treffer / richtig.size : regel === 'abzug' ? Math.max(0, (treffer - falsch) / richtig.size)
+      : (treffer === richtig.size && !falsch ? 1 : 0);
+    return { anteil, text: anteil === 1 ? 'Richtig' : `${treffer} von ${richtig.size} richtigen, ${falsch} falsch angekreuzt`, gew };
+  }
+  if (t.typ === 'zahlen') {
+    // Jeder richtige Eintrag bringt anteilig Punkte; typische Fehler werden pro Eintrag erklärt
+    const hinweise = [], zeilen = t.eintraege.map((e, i) => {
+      const roh = $(`#in-${id}-${i}`).value.trim(), u = zahlLesen(roh), v = e.ergebnis, halb = 0.51 * 10 ** -(e.runden ?? 2);
+      const richtig = !!roh && Number.isFinite(u) && Math.abs(u - v) <= Math.max(Math.abs(v) * 0.01, halb);
+      const falle = !richtig && Number.isFinite(u) ? (e.fallen || []).find(f => Math.abs(u - f.wert) <= Math.max(Math.abs(f.wert) * 0.01, halb)) : null;
+      if (falle) hinweise.push(`${e.label}: ${falle.fehler}`);
+      return richtig;
+    });
+    const n = zeilen.filter(Boolean).length;
+    return { anteil: n / t.eintraege.length, text: n === t.eintraege.length ? 'Richtig' : `${n} von ${t.eintraege.length} Werten richtig`, feedback: hinweise.join(' '), zeilen };
+  }
+  if (t.typ === 'zuordnung') {
+    const ok = t.elemente.map((e, i) => $(`#in-${id}-${i}`).value === e.kategorie);
+    const n = ok.filter(Boolean).length;
+    return { anteil: n / t.elemente.length, text: `${n} von ${t.elemente.length} richtig zugeordnet` };
+  }
+  return null;  // Freitext und Zeichnung: selbst bewerten
+}
+
+function musterHTML(t, erg, id) {
+  if (t.typ === 'mc' || t.typ === 'mehrfach') {
+    return `<div class="muster"><b>Musterlösung</b><ul>${t.optionen.map((o, i) => `<li>${o.richtig ? '✓' : '✗'} ${erg && erg.gew && erg.gew.has(i) ? '<em>(deine Wahl)</em> ' : ''}<span class="md">${md(o.wert)}</span>${o.fehler ? `<div class="hinweis md">${md(o.fehler)}</div>` : ''}</li>`).join('')}</ul></div>`;
+  }
+  if (t.typ === 'zahlen') return `<div class="muster"><b>Musterlösung</b><ul>${t.eintraege.map((e, i) => `<li><span class="md">${md(e.label)}</span> = <b>${esc(String(Math.round(e.ergebnis * 10 ** (e.runden ?? 2)) / 10 ** (e.runden ?? 2)).replace('.', ','))}${e.einheit ? ' ' + esc(e.einheit) : ''}</b>${erg && erg.zeilen ? (erg.zeilen[i] ? ' ✓' : ' ✗ <span class="hinweis">(dein Wert: ' + esc($(`#in-${id}-${i}`).value.trim() || 'leer') + ')</span>') : ''}</li>`).join('')}</ul></div>`;
+  if (t.typ === 'zuordnung') return `<div class="muster"><b>Musterlösung</b><ul>${t.elemente.map(e => `<li><span class="md">${md(e.text)}</span> → <b>${esc(e.kategorie)}</b>${e.erklaerung ? `<div class="hinweis">${esc(e.erklaerung)}</div>` : ''}</li>`).join('')}</ul></div>`;
+  return `<div class="muster"><b>Musterlösung</b><div class="md">${md(t.muster)}${t.einheit && t.typ === 'zahl' ? ' ' + esc(t.einheit) : ''}</div></div>`;
+}
+
+const klasse = a => a >= 0.999 ? 'gut' : a > 0 ? 'teilweise' : 'falsch';
+let auto = 0;
+
+// ---- Ergebnis an die Übungsleitung, anonym: Punkte und Antworten je Teilaufgabe über einen geheimen ntfy-Kanal
+const PUNKTE = {};
+const kurz = (s, n = 1500) => String(s ?? '').trim().slice(0, n);
+function antwortenSammeln() {
+  const a = {};
+  KLAUSUR.aufgaben.forEach((auf, k) => auf.teile.forEach(t => {
+    const id = `${k}-${t.id}`;
+    if (t.typ === 'zahl') a[id] = kurz($(`#in-${id}`).value, 60);
+    else if (t.typ === 'mc' || t.typ === 'mehrfach') a[id] = $$(`input[name="${id}"]`).filter(e => e.checked).map(e => +e.value);
+    else if (t.typ === 'zuordnung') a[id] = t.elemente.map((_, i) => $(`#in-${id}-${i}`).value);
+    else if (t.typ === 'zahlen') a[id] = t.eintraege.map((_, i) => kurz($(`#in-${id}-${i}`).value, 60));
+    else if (t.typ !== 'zeichnung') a[id] = $$(`textarea[id^="in-${id}-"]`).map(e => kurz(e.value));
+  }));
+  return a;
+}
+const neuerVersuch = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+let versuch = neuerVersuch(), sendeTimer = 0;
+if (KLAUSUR.kanal) $('#sendebox').hidden = false;
+function senden() {
+  if (!KLAUSUR.kanal) return;
+  clearTimeout(sendeTimer);
+  sendeTimer = setTimeout(() => {
+    const summe = Object.values(PUNKTE).reduce((s, p) => s + p, 0);
+    const nachricht = JSON.stringify({ versuch, punkte: Math.round(summe * 10) / 10, max: MAX, teile: PUNKTE, antworten: antwortenSammeln() });
+    fetch(`https://ntfy.sh/lz-${KLAUSUR.kanal}`, { method: 'POST', body: nachricht })
+      .then(r => { if (r.ok) $('#gesendet').textContent = 'Dein Ergebnis ist bei der Übungsleitung angekommen.'; })
+      .catch(() => { $('#gesendet').textContent = 'Dein Ergebnis konnte nicht übermittelt werden (keine Verbindung?). Deine Auswertung oben gilt trotzdem.'; });
+  }, 1500);
+}
+
+function zeigeSumme() {
+  let selbst = 0;
+  KLAUSUR.aufgaben.forEach((a, k) => a.teile.forEach(t => {
+    if (!['text', 'zeichnung'].includes(t.typ)) return;
+    const id = `${k}-${t.id}`, kr = kriterien(t);
+    const gesamt = kr.reduce((s, x) => s + x.gewicht, 0) || 1;
+    const erfuellt = $$(`[data-selbst="${id}"]`).reduce((s, e, i) => s + (e.checked ? kr[i].gewicht : 0), 0);
+    const p = Math.round((t.punkte || 0) * erfuellt / gesamt * 2) / 2;
+    selbst += p;
+    PUNKTE[id] = p;
+    const box = $(`[data-teil="${id}"] .bewertung`);
+    if (box) { box.className = `bewertung ${klasse(p / (t.punkte || 1))}`; $('.zeile span:last-child', box).textContent = `${zahlText(p)} / ${zahlText(t.punkte || 0)} P.`; }
+  }));
+  const summe = Math.round((auto + selbst) * 10) / 10, quote = summe / (MAX || 1);
+  $('#summe').textContent = zahlText(summe);
+  $('#balken').style.width = `${Math.min(100, quote * 100)}%`;
+  const hatSelbst = KLAUSUR.aufgaben.some(a => a.teile.some(t => ['text', 'zeichnung'].includes(t.typ)));
+  $('#ergebnistext').textContent = (quote >= 0.85 ? 'Sehr gut gelöst.' : quote >= 0.6 ? 'Solide. Schau dir die markierten Teile in der Musterlösung an.' : 'Arbeite die Musterlösung und den Lösungsweg in Ruhe durch.')
+    + (hatSelbst ? ' Freitext-Teile hast du selbst bewertet: Hake ab, was in deiner Antwort vorkommt.' : '');
+}
+
+$('#bogen').addEventListener('submit', ev => {
+  ev.preventDefault();
+  auto = 0;
+  KLAUSUR.aufgaben.forEach((a, k) => {
+    a.teile.forEach(t => {
+      const id = `${k}-${t.id}`, box = $(`[data-teil="${id}"] .auswertung`);
+      const erg = pruefe(t, id);
+      if (!erg) {
+        const kr = kriterien(t);
+        box.innerHTML = `<div class="bewertung falsch"><div class="zeile"><span>Selbst bewerten</span><span></span></div><div class="hinweis">Vergleiche mit der Musterlösung und hake ab, was du richtig hast.</div></div>
+          <div class="muster"><b>Musterlösung zum Abhaken</b>${kr.map((x, i) => `<label class="option"><input type="checkbox" data-selbst="${id}" id="selbst-${id}-${i}"><span class="md">${md(x.text)}${t.typ === 'zeichnung' ? ` <span class="hinweis">(${zahlText(x.gewicht)} P.)</span>` : ''}</span></label>`).join('')}
+          ${t.loesung_svg ? `<div class="skizze">${svgSicher(t.loesung_svg)}</div>` : ''}</div>`;
+        return;
+      }
+      const p = Math.round((t.punkte || 0) * erg.anteil * 2) / 2;
+      auto += p;
+      PUNKTE[id] = p;
+      box.innerHTML = `<div class="bewertung ${klasse(erg.anteil)}"><div class="zeile"><span>${esc(erg.text)}</span><span>${zahlText(p)} / ${zahlText(t.punkte || 0)} P.</span></div>${erg.feedback ? `<div class="md">${md(erg.feedback)}</div>` : ''}</div>${musterHTML(t, erg, id)}`;
+    });
+  });
+  // Eingaben sperren, aber nicht die Häkchen der Selbstbewertung (die entstehen erst jetzt und sollen anklickbar bleiben)
+  $$('#bogen input:not([data-selbst]), #bogen textarea, #bogen select').forEach(e => { e.disabled = true; });
+  $$('.weg').forEach(w => { w.hidden = false; });
+  $('#abgeben').disabled = true;
+  $('#abgabehinweis').textContent = 'Abgegeben. Dein Ergebnis steht unten.';
+  $('#ergebnis').hidden = false;
+  zeigeSumme();
+  senden();
+  stoppeUhr();
+  $('#ergebnis').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+});
+// Selbstbewertung nachträglich: dieselbe Abgabe mit neuer Punktzahl (die Lernzentrale behält die neueste)
+document.addEventListener('change', ev => { if (ev.target.matches('[data-selbst]')) { zeigeSumme(); senden(); } });
+
+$('#nochmal').addEventListener('click', () => {
+  $$('#bogen input, #bogen textarea, #bogen select').forEach(e => { e.disabled = false; if (e.type === 'checkbox' || e.type === 'radio') e.checked = false; else e.value = ''; });
+  $$('.auswertung').forEach(e => { e.innerHTML = ''; });
+  $$('.weg').forEach(w => { w.hidden = true; });
+  $('#abgeben').disabled = false;
+  $('#abgabehinweis').textContent = 'Zahlen mit Komma oder Punkt. Nach der Abgabe siehst du deine Punkte und die Musterlösung.';
+  $('#ergebnis').hidden = true;
+  $('#gesendet').textContent = '';
+  for (const t in PUNKTE) delete PUNKTE[t];
+  versuch = neuerVersuch();
+  try { localStorage.removeItem(SPEICHER); } catch (e) {}
+  rest = KLAUSUR.dauer * 60; zeigeUhr(); $('#uhrknopf').textContent = 'Zeit starten';
+  $('#titel').scrollIntoView({ block: 'start' });
+});
+
+// ---- Uhr
+let rest = KLAUSUR.dauer * 60, takt = null;
+function zeigeUhr() {
+  const s = Math.abs(rest);
+  $('#uhrzeit').textContent = `${rest < 0 ? '+' : ''}${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  $('#uhr').classList.toggle('ablauf', rest < 0);
+}
+function stoppeUhr() { clearInterval(takt); takt = null; $('#uhrknopf').textContent = 'Weiter'; }
+$('#uhrknopf').addEventListener('click', () => {
+  if (takt) return stoppeUhr();
+  $('#uhrknopf').textContent = 'Pause';
+  takt = setInterval(() => { rest--; zeigeUhr(); }, 1000);
+});
+zeigeUhr();
+</script>
+
+</html>
