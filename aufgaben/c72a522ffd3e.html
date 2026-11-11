@@ -625,9 +625,9 @@ const KLAUSUR = {
        "fehler": "Die einfache ADD-Heuristik ordnet jede Station dem günstigsten eröffneten Standort zu, ohne a_i zu prüfen. Sie ist für das unkapazitierte WLP gedacht, im kapazitierten Fall kann die Zuordnung unzulässig sein."
       },
       {
-       "wert": "Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. So wäre für die Zuordnung von Station 3 zu Standort 4 der Wert d₄₃ = 12 LE einzusetzen.",
+       "wert": "Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. Beliefert der Supermarkt an Kreuzung 4 die Station an Kreuzung 3, ist der kürzeste Weg von 4 nach 3 einzusetzen, also d₄₃ = 12 LE.",
        "richtig": true,
-       "fehler": "ADD verwendet beliebige gegebene Transportkosten. Die Distanzmatrix D⁽²⁾ liefert d₄₃ = 3 + 4 + 5 = 12 LE."
+       "fehler": "ADD verwendet beliebige gegebene Transportkosten c_ij (Standort i, Station j). Die Distanzmatrix D⁽²⁾ liefert für den Weg 4 → 2 → 1 → 3 den Wert d₄₃ = 3 + 4 + 5 = 12 LE. Weil das Netz Einbahnwege hat, ist die Richtung wichtig."
       },
       {
        "wert": "Wird ein bereits eröffneter Standort durch spätere Eröffnungen überflüssig, schließt ADD ihn wieder.",
@@ -640,7 +640,7 @@ const KLAUSUR = {
        "fehler": "Ein Standort wird nur eröffnet, wenn Transportersparnis − f_i > 0 gilt. Ist das für keinen Kandidaten mehr der Fall, endet das Verfahren."
       }
      ],
-     "muster": "- ADD startet mit genau einem eröffneten Standort und eröffnet in jedem weiteren Schritt den Standort mit der größten Gesamtkostenersparnis.\n- Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. So wäre für die Zuordnung von Station 3 zu Standort 4 der Wert d₄₃ = 12 LE einzusetzen.\n- ADD bricht ab, sobald keine weitere Eröffnung die Gesamtkosten mehr senkt, d. h. die Transportersparnis nicht mehr größer ist als die Fixkosten f_i."
+     "muster": "- ADD startet mit genau einem eröffneten Standort und eröffnet in jedem weiteren Schritt den Standort mit der größten Gesamtkostenersparnis.\n- Als Transportkosten können die kürzesten Wege des Tripel-Algorithmus dienen. Beliefert der Supermarkt an Kreuzung 4 die Station an Kreuzung 3, ist der kürzeste Weg von 4 nach 3 einzusetzen, also d₄₃ = 12 LE.\n- ADD bricht ab, sobald keine weitere Eröffnung die Gesamtkosten mehr senkt, d. h. die Transportersparnis nicht mehr größer ist als die Fixkosten f_i."
     }
    ]
   },
