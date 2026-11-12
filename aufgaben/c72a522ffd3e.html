@@ -595,7 +595,7 @@ const KLAUSUR = {
        "fehler": "Für jeden Supermarkt i wird über alle Stationen j summiert. Ist y_i = 0, ist keine Lieferung möglich. Ist y_i = 1, begrenzt a_i die Menge."
       },
       {
-       "wert": "m.addConstr(quicksum(x[i,j] for i in I for j in J) <= gp.quicksum(a[i]*y[i] for i in I))",
+       "wert": "m.addConstr(quicksum(x[i,j] for i in I for j in J) <= quicksum(a[i]*y[i] for i in I))",
        "richtig": false,
        "fehler": "Diese Bedingung ist aggregiert: Nur die Gesamtkapazität wird begrenzt. Ein einzelner Standort könnte seine Kapazität überschreiten."
       },
